@@ -189,10 +189,8 @@ async function loadTracksFromSupabase() {
 const elements = {
     jukebox: document.querySelector('.jukebox'),
     audioPlayer: document.getElementById('audioPlayer'),
-    audioPlayerB: document.getElementById('audioPlayerB'),
     playPauseBtn: document.getElementById('playPauseBtn'),
     skipBtn: document.getElementById('skipBtn'),
-    shareBtn: document.getElementById('shareBtn'),
     // Header elements
     currentSongTitle: document.getElementById('currentSongTitle'),
     // Song details elements
@@ -220,17 +218,6 @@ const elements = {
     lyricsModalTitle: document.getElementById('lyricsModalTitle'),
     lyricsModalCover: document.getElementById('lyricsModalCover'),
     lyricsModalText: document.getElementById('lyricsModalText'),
-    // Share modal
-    shareModal: document.getElementById('shareModal'),
-    shareModalClose: document.getElementById('shareModalClose'),
-    shareSongCover: document.getElementById('shareSongCover'),
-    shareSongTitle: document.getElementById('shareSongTitle'),
-    shareSongTheme: document.getElementById('shareSongTheme'),
-    shareWhatsApp: document.getElementById('shareWhatsApp'),
-    shareTwitter: document.getElementById('shareTwitter'),
-    shareCopy: document.getElementById('shareCopy'),
-    shareLinkInput: document.getElementById('shareLinkInput'),
-    shareCopied: document.getElementById('shareCopied'),
     // Loading & shortcuts
     loadingScreen: document.getElementById('loadingScreen'),
     shortcutsToast: document.getElementById('shortcutsToast'),
@@ -250,19 +237,12 @@ let state = {
     isPlaying: false,
     lyricsExpanded: false,
     lyricsModalOpen: false,
-    shareModalOpen: false,
     audioContext: null,
     analyser: null,
-    analyserB: null,
-    sourceA: null,
-    sourceB: null,
     isInitialized: false,
     isDragging: false,
     hasShownShortcuts: false,
-    // Crossfade
-    activePlayer: 'A',
-    isCrossfading: false,
-    crossfadeDuration: 2000
+    lastSharedUrl: ''
 };
 
 // ========================================
@@ -322,25 +302,12 @@ function hideLoadingScreen() {
 // AUDIO CONTROL
 // ========================================
 
-function getActivePlayer() {
-    return state.activePlayer === 'A' ? elements.audioPlayer : elements.audioPlayerB;
-}
-
-function getInactivePlayer() {
-    return state.activePlayer === 'A' ? elements.audioPlayerB : elements.audioPlayer;
-}
-
-function loadTrack(index, withCrossfade = false) {
+function loadTrack(index) {
     const track = state.tracks[index];
     if (!track) return;
 
-    // Update meta tags for sharing
-    updateMetaTags(track);
-
     // Reset progress bar
-    if (!withCrossfade) {
-        resetProgress();
-    }
+    resetProgress();
 
     // Add transitioning state
     elements.songDetails.classList.add('transitioning');
@@ -402,52 +369,16 @@ function loadTrack(index, withCrossfade = false) {
         elements.songDetails.classList.remove('transitioning');
     }, 150);
 
-    // Load audio - use inactive player for crossfade
+    // Load audio
     const audioUrl = track.audio_url;
     console.log('Loading audio from:', audioUrl);
-    
-    if (withCrossfade && state.isPlaying) {
-        const inactivePlayer = getInactivePlayer();
-        inactivePlayer.src = audioUrl;
-        inactivePlayer.load();
-    } else {
-        elements.audioPlayer.src = audioUrl;
-        elements.audioPlayer.load();
-    }
+    elements.audioPlayer.src = audioUrl;
+    elements.audioPlayer.load();
 
     state.currentTrackIndex = index;
     
     // Update queue preview
     updateQueuePreview();
-    
-    // Update URL for sharing
-    updateShareURL(track);
-}
-
-function updateMetaTags(track) {
-    // Update Open Graph meta tags dynamically
-    const ogTitle = document.querySelector('meta[property="og:title"]');
-    const ogDesc = document.querySelector('meta[property="og:description"]');
-    const ogImage = document.querySelector('meta[property="og:image"]');
-    const twitterTitle = document.querySelector('meta[name="twitter:title"]');
-    const twitterDesc = document.querySelector('meta[name="twitter:description"]');
-    
-    const title = `${track.title} — ORBIT`;
-    const desc = track.summary || 'Hear the unheard. Discover music created through the fusion of AI and human imagination.';
-    
-    if (ogTitle) ogTitle.content = title;
-    if (ogDesc) ogDesc.content = desc;
-    if (ogImage && track.cover_url) ogImage.content = track.cover_url;
-    if (twitterTitle) twitterTitle.content = title;
-    if (twitterDesc) twitterDesc.content = desc;
-    
-    document.title = title;
-}
-
-function updateShareURL(track) {
-    const url = new URL(window.location.href);
-    url.searchParams.set('song', track.id);
-    window.history.replaceState({}, '', url);
 }
 
 function play() {
@@ -461,8 +392,7 @@ function play() {
         state.isInitialized = true;
     }
 
-    const player = getActivePlayer();
-    player.play()
+    elements.audioPlayer.play()
         .then(() => {
             state.isPlaying = true;
             updatePlayState();
@@ -480,8 +410,7 @@ function play() {
 }
 
 function pause() {
-    const player = getActivePlayer();
-    player.pause();
+    elements.audioPlayer.pause();
     state.isPlaying = false;
     updatePlayState();
 }
@@ -494,82 +423,26 @@ function togglePlayPause() {
     }
 }
 
-function crossfade(newIndex) {
-    if (state.isCrossfading) return;
-    state.isCrossfading = true;
-    
-    const currentPlayer = getActivePlayer();
-    const nextPlayer = getInactivePlayer();
-    
-    // Load new track into next player
-    const track = state.tracks[newIndex];
-    nextPlayer.src = track.audio_url;
-    nextPlayer.load();
-    nextPlayer.volume = 0;
-    
-    // Start next player
-    nextPlayer.play().then(() => {
-        const startTime = Date.now();
-        const duration = state.crossfadeDuration;
-        
-        function fade() {
-            const elapsed = Date.now() - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            
-            // Ease-in-out curve
-            const eased = progress < 0.5 
-                ? 2 * progress * progress 
-                : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-            
-            currentPlayer.volume = 1 - eased;
-            nextPlayer.volume = eased;
-            
-            if (progress < 1) {
-                requestAnimationFrame(fade);
-            } else {
-                // Crossfade complete
-                currentPlayer.pause();
-                currentPlayer.volume = 1;
-                state.activePlayer = state.activePlayer === 'A' ? 'B' : 'A';
-                state.isCrossfading = false;
-                
-                // Update progress bar to track new player
-                resetProgress();
-            }
-        }
-        
-        fade();
-    }).catch(err => {
-        console.error('Crossfade failed:', err);
-        state.isCrossfading = false;
-    });
-    
-    // Update track info immediately
-    state.currentTrackIndex = newIndex;
-    loadTrack(newIndex, true);
-}
-
 function skipTrack() {
-    const nextIndex = getRandomTrackIndex(state.currentTrackIndex);
-    
-    if (state.isPlaying && !state.isCrossfading) {
-        // Use crossfade when playing
-        crossfade(nextIndex);
-    } else {
-        // Normal skip when paused
-        elements.jukebox.classList.add('spin-burst');
-        elements.jukebox.classList.remove('playing', 'paused');
+    // Add spin burst animation
+    elements.jukebox.classList.add('spin-burst');
+    elements.jukebox.classList.remove('playing', 'paused');
 
-        setTimeout(() => {
-            elements.jukebox.classList.remove('spin-burst');
-            loadTrack(nextIndex);
-            if (state.isPlaying) {
-                play();
-            } else {
-                play();
-            }
-        }, 500);
-    }
+    // Remove spin burst after animation
+    setTimeout(() => {
+        elements.jukebox.classList.remove('spin-burst');
+        
+        // Load next random track
+        const nextIndex = getRandomTrackIndex(state.currentTrackIndex);
+        loadTrack(nextIndex);
+
+        // Auto-play if was playing
+        if (state.isPlaying) {
+            play();
+        } else {
+            play();
+        }
+    }, 500);
 }
 
 function updatePlayState() {
@@ -581,6 +454,12 @@ function updatePlayState() {
         elements.jukebox.classList.remove('playing');
         elements.jukebox.classList.add('paused');
         document.body.classList.remove('playing');
+    }
+    // Update meta tags for current song
+    const track = state.tracks[state.currentTrackIndex];
+    if (track) {
+        const url = `${window.location.origin}${window.location.pathname}?song=${encodeURIComponent(track.id)}`;
+        updateSongMetaTags(track, url);
     }
 }
 
@@ -658,9 +537,8 @@ function formatTime(seconds) {
 function updateProgress() {
     if (state.isDragging) return;
     
-    const player = getActivePlayer();
-    const current = player.currentTime;
-    const duration = player.duration;
+    const current = elements.audioPlayer.currentTime;
+    const duration = elements.audioPlayer.duration;
     
     if (duration && isFinite(duration)) {
         const percent = (current / duration) * 100;
@@ -672,8 +550,7 @@ function updateProgress() {
 }
 
 function updateDuration() {
-    const player = getActivePlayer();
-    const duration = player.duration;
+    const duration = elements.audioPlayer.duration;
     if (duration && isFinite(duration)) {
         elements.duration.textContent = formatTime(duration);
     }
@@ -689,11 +566,10 @@ function resetProgress() {
 function seekTo(e) {
     const rect = elements.progressBar.getBoundingClientRect();
     const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    const player = getActivePlayer();
-    const duration = player.duration;
+    const duration = elements.audioPlayer.duration;
     
     if (duration && isFinite(duration)) {
-        player.currentTime = percent * duration;
+        elements.audioPlayer.currentTime = percent * duration;
         elements.progressFill.style.width = `${percent * 100}%`;
         elements.progressHandle.style.left = `${percent * 100}%`;
         elements.currentTime.textContent = formatTime(percent * duration);
@@ -705,8 +581,7 @@ function updateHoverTime(e) {
     
     const rect = elements.progressBar.getBoundingClientRect();
     const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    const player = getActivePlayer();
-    const duration = player.duration;
+    const duration = elements.audioPlayer.duration;
     
     if (duration && isFinite(duration)) {
         const time = percent * duration;
@@ -768,13 +643,6 @@ function initProgressBar() {
     elements.audioPlayer.addEventListener('timeupdate', updateProgress);
     elements.audioPlayer.addEventListener('loadedmetadata', updateDuration);
     elements.audioPlayer.addEventListener('durationchange', updateDuration);
-    
-    // Events for second player (crossfade)
-    if (elements.audioPlayerB) {
-        elements.audioPlayerB.addEventListener('timeupdate', updateProgress);
-        elements.audioPlayerB.addEventListener('loadedmetadata', updateDuration);
-        elements.audioPlayerB.addEventListener('durationchange', updateDuration);
-    }
 }
 
 // ========================================
@@ -812,19 +680,9 @@ function initKeyboardShortcuts() {
                     openLyricsModal();
                 }
                 break;
-            case 'KeyS':
-                if (state.shareModalOpen) {
-                    closeShareModal();
-                } else {
-                    openShareModal();
-                }
-                break;
             case 'Escape':
                 if (state.lyricsModalOpen) {
                     closeLyricsModal();
-                }
-                if (state.shareModalOpen) {
-                    closeShareModal();
                 }
                 break;
         }
@@ -1020,137 +878,80 @@ function detectBeat() {
 }
 
 // ========================================
-// SHARE FUNCTIONALITY
-// ========================================
-
-function initShareModal() {
-    if (elements.shareBtn) {
-        elements.shareBtn.addEventListener('click', openShareModal);
-    }
-    if (elements.shareModalClose) {
-        elements.shareModalClose.addEventListener('click', closeShareModal);
-    }
-    if (elements.shareModal) {
-        elements.shareModal.querySelector('.share-modal-backdrop')?.addEventListener('click', closeShareModal);
-    }
-    if (elements.shareWhatsApp) {
-        elements.shareWhatsApp.addEventListener('click', shareToWhatsApp);
-    }
-    if (elements.shareTwitter) {
-        elements.shareTwitter.addEventListener('click', shareToTwitter);
-    }
-    if (elements.shareCopy) {
-        elements.shareCopy.addEventListener('click', copyShareLink);
-    }
-}
-
-function openShareModal() {
-    if (!elements.shareModal) return;
-    
-    const track = state.tracks[state.currentTrackIndex];
-    if (!track) return;
-    
-    // Update modal content
-    if (elements.shareSongTitle) {
-        elements.shareSongTitle.textContent = track.title;
-    }
-    if (elements.shareSongTheme) {
-        elements.shareSongTheme.textContent = track.theme || 'AI Music';
-    }
-    if (elements.shareSongCover) {
-        if (track.cover_url) {
-            elements.shareSongCover.style.backgroundImage = `url(${track.cover_url})`;
-        } else {
-            elements.shareSongCover.style.backgroundImage = generateCoverGradient(track.title);
-        }
-    }
-    
-    // Generate share URL
-    const shareUrl = generateShareUrl(track);
-    if (elements.shareLinkInput) {
-        elements.shareLinkInput.value = shareUrl;
-    }
-    
-    // Hide copied message
-    if (elements.shareCopied) {
-        elements.shareCopied.classList.remove('show');
-    }
-    
-    elements.shareModal.classList.add('active');
-    state.shareModalOpen = true;
-    document.body.style.overflow = 'hidden';
-}
-
-function closeShareModal() {
-    if (!elements.shareModal) return;
-    
-    elements.shareModal.classList.remove('active');
-    state.shareModalOpen = false;
-    document.body.style.overflow = '';
-}
-
-function generateShareUrl(track) {
-    const url = new URL(window.location.origin + window.location.pathname);
-    url.searchParams.set('song', track.id);
-    return url.toString();
-}
-
-function shareToWhatsApp() {
-    const track = state.tracks[state.currentTrackIndex];
-    if (!track) return;
-    
-    const shareUrl = generateShareUrl(track);
-    const text = `🎵 Listen to "${track.title}" on ORBIT — AI-powered music\n\n${shareUrl}`;
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
-    window.open(whatsappUrl, '_blank');
-}
-
-function shareToTwitter() {
-    const track = state.tracks[state.currentTrackIndex];
-    if (!track) return;
-    
-    const shareUrl = generateShareUrl(track);
-    const text = `🎵 Listening to "${track.title}" on ORBIT — music created through AI imagination`;
-    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
-    window.open(twitterUrl, '_blank');
-}
-
-function copyShareLink() {
-    if (!elements.shareLinkInput) return;
-    
-    navigator.clipboard.writeText(elements.shareLinkInput.value).then(() => {
-        if (elements.shareCopied) {
-            elements.shareCopied.classList.add('show');
-            setTimeout(() => {
-                elements.shareCopied.classList.remove('show');
-            }, 2000);
-        }
-    }).catch(err => {
-        console.error('Failed to copy:', err);
-        // Fallback
-        elements.shareLinkInput.select();
-        document.execCommand('copy');
-    });
-}
-
-function checkUrlForSong() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const songId = urlParams.get('song');
-    
-    if (songId && state.tracks.length > 0) {
-        const songIndex = state.tracks.findIndex(t => t.id === songId || t.id === parseInt(songId));
-        if (songIndex !== -1) {
-            return songIndex;
-        }
-    }
-    return null;
-}
-
-// ========================================
 // EVENT LISTENERS
 // ========================================
 
 function initEventListeners() {
+        // Share button
+        const shareBtn = document.getElementById('shareBtn');
+        if (shareBtn) {
+            shareBtn.addEventListener('click', async () => {
+                const track = state.tracks[state.currentTrackIndex];
+                if (!track) return;
+                const url = `${window.location.origin}${window.location.pathname}?song=${encodeURIComponent(track.id)}`;
+                state.lastSharedUrl = url;
+                // Update meta tags for sharing
+                updateSongMetaTags(track, url);
+                // Try Web Share API
+                if (navigator.share) {
+                    try {
+                        await navigator.share({
+                            title: track.title + ' — ORBIT AI Jukebox',
+                            text: `Listen to "${track.title}" on ORBIT!` ,
+                            url
+                        });
+                    } catch (err) {
+                        // User cancelled or error
+                    }
+                } else {
+                    // Fallback: copy to clipboard
+                    try {
+                        await navigator.clipboard.writeText(url);
+                        showToast('Shareable link copied!');
+                    } catch (err) {
+                        prompt('Copy this link to share:', url);
+                    }
+                }
+            });
+        }
+    // Update Open Graph and Twitter meta tags for sharing
+    function updateSongMetaTags(track, url) {
+        setMeta('og:title', `${track.title} — ORBIT AI Jukebox`);
+        setMeta('og:description', track.summary || 'Hear the unheard. Discover music created through the fusion of AI and human imagination.');
+        setMeta('og:url', url);
+        setMeta('twitter:title', `${track.title} — ORBIT AI Jukebox`);
+        setMeta('twitter:description', track.summary || 'Hear the unheard. Discover music created through the fusion of AI and human imagination.');
+        setMeta('twitter:url', url);
+        // Use cover art if available, else fallback
+        let cover = track.cover_url || 'https://orbit.audio/og-image.jpg';
+        setMeta('og:image', cover);
+        setMeta('twitter:image', cover);
+    }
+
+    function setMeta(property, content) {
+        let meta = document.querySelector(`meta[property='${property}'], meta[name='${property}']`);
+        if (!meta) {
+            // Try to create if not found
+            meta = document.createElement('meta');
+            if (property.startsWith('og:')) {
+                meta.setAttribute('property', property);
+            } else {
+                meta.setAttribute('name', property);
+            }
+            document.head.appendChild(meta);
+        }
+        meta.setAttribute('content', content);
+    }
+
+    // Show a toast for fallback share
+    function showToast(msg) {
+        let toast = document.createElement('div');
+        toast.className = 'share-toast';
+        toast.textContent = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => { toast.classList.add('visible'); }, 10);
+        setTimeout(() => { toast.classList.remove('visible'); toast.remove(); }, 2200);
+    }
     // Play/Pause button
     elements.playPauseBtn.addEventListener('click', togglePlayPause);
 
@@ -1180,18 +981,6 @@ function initEventListeners() {
         console.log('Audio error, skipping to next track...');
         skipTrack();
     });
-    
-    // Second audio player events (for crossfade)
-    if (elements.audioPlayerB) {
-        elements.audioPlayerB.addEventListener('ended', () => {
-            skipTrack();
-        });
-        
-        elements.audioPlayerB.addEventListener('error', () => {
-            console.log('Audio B error, skipping to next track...');
-            skipTrack();
-        });
-    }
 
     // Click anywhere on jukebox disc to play/pause
     elements.jukebox.querySelector('.disc-container').addEventListener('click', togglePlayPause);
@@ -1243,10 +1032,24 @@ async function init() {
         return;
     }
 
-    // Check URL for shared song
-    const sharedSongIndex = checkUrlForSong();
-    const initialTrack = sharedSongIndex !== null ? sharedSongIndex : getRandomTrackIndex();
-    loadTrack(initialTrack);
+
+    // If deep-link, play that song, else random
+    const params = new URLSearchParams(window.location.search);
+    const songId = params.get('song');
+    if (songId) {
+        const idx = state.tracks.findIndex(t => String(t.id) === String(songId));
+        if (idx !== -1) {
+            loadTrack(idx);
+            // Optionally autoplay
+            play();
+        } else {
+            const initialTrack = getRandomTrackIndex();
+            loadTrack(initialTrack);
+        }
+    } else {
+        const initialTrack = getRandomTrackIndex();
+        loadTrack(initialTrack);
+    }
 
     // Set up event listeners
     initEventListeners();
@@ -1262,20 +1065,9 @@ async function init() {
     
     // Initialize page transitions
     initPageTransitions();
-    
-    // Initialize share modal
-    initShareModal();
 
     // Show initial state
     elements.jukebox.classList.add('paused');
-
-    // Auto-play if coming from shared link
-    if (sharedSongIndex !== null) {
-        setTimeout(() => {
-            play();
-        }, 500);
-        return;
-    }
 
     // Attempt autoplay
     const startOnInteraction = () => {
