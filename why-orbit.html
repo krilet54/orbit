@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Why ORBIT — Hear the Unheard</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%230a0a0a' stroke='%23d4af37' stroke-width='2'/%3E%3Ccircle cx='50' cy='50' r='30' fill='none' stroke='%23d4af37' stroke-width='1' opacity='0.5'/%3E%3Ccircle cx='50' cy='50' r='15' fill='%23d4af37'/%3E%3Ccircle cx='50' cy='50' r='5' fill='%230a0a0a'/%3E%3C/svg%3E">
+    
+    <!-- Meta Tags -->
+    <meta name="description" content="Discover why ORBIT represents the future of AI-generated music. A manifesto for a new sonic frontier.">
+    <meta property="og:title" content="Why ORBIT — Hear the Unheard">
+    <meta property="og:description" content="A manifesto for a new sonic frontier. AI and human imagination, united.">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-serif: 'Cormorant Garamond', Georgia, serif;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --color-gold: #d4af37;
+            --color-ivory: #f5f5f0;
+            --color-black: #0a0a0a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--color-black);
+            color: var(--color-ivory);
+            font-family: var(--font-sans);
+            overflow-x: hidden;
+            animation: pageEnter 0.6s ease-out;
+        }
+        
+        @keyframes pageEnter {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ========================================
+           SPACE BACKGROUND - PARALLAX LAYERS
+           ======================================== */
+        .space-container {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        /* Deep space gradient that shifts on scroll */
+        .space-gradient {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 50%, 
+                #0d0d15 0%, 
+                #0a0a0a 50%, 
+                #050508 100%);
+            transition: background 0.5s ease;
+        }
+
+        /* Star layers with different parallax speeds */
+        .stars-layer {
+            position: absolute;
+            inset: 0;
+            will-change: transform;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+        }
+
+        .star {
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+        }
+
+        /* Tiny distant stars */
+        .stars-distant .star {
+            width: 1px;
+            height: 1px;
+            opacity: 0.4;
+        }
+
+        /* Medium stars */
+        .stars-mid .star {
+            width: 2px;
+            height: 2px;
+            opacity: 0.6;
+            box-shadow: 0 0 3px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Close bright stars */
+        .stars-close .star {
+            width: 3px;
+            height: 3px;
+            opacity: 0.8;
+            box-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Gold accent stars */
+        .stars-gold .star {
+            width: 2px;
+            height: 2px;
+            background: var(--color-gold);
+            opacity: 0.6;
+            box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
+        }
+
+        /* Nebula clouds */
+        .nebula {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0;
+            transition: opacity 1s ease, transform 0.5s ease;
+            will-change: transform, opacity;
+        }
+
+        .nebula-1 {
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, transparent 70%);
+            top: 20%;
+            left: -10%;
+        }
+
+        .nebula-2 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(100, 80, 180, 0.12) 0%, transparent 70%);
+            top: 60%;
+            right: -15%;
+        }
+
+        .nebula-3 {
+            width: 700px;
+            height: 700px;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+            bottom: 10%;
+            left: 30%;
+        }
+
+        /* Shooting stars */
+        .shooting-star {
+            position: absolute;
+            width: 100px;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.8) 0%, transparent 100%);
+            opacity: 0;
+            transform: rotate(-45deg);
+            animation: shootingStar 3s ease-in-out infinite;
+        }
+
+        .shooting-star:nth-child(1) { top: 15%; left: 20%; animation-delay: 0s; }
+        .shooting-star:nth-child(2) { top: 35%; left: 70%; animation-delay: 2s; }
+        .shooting-star:nth-child(3) { top: 65%; left: 40%; animation-delay: 4s; }
+
+        @keyframes shootingStar {
+            0% { opacity: 0; transform: rotate(-45deg) translateX(0); }
+            5% { opacity: 1; }
+            20% { opacity: 0; transform: rotate(-45deg) translateX(300px); }
+            100% { opacity: 0; transform: rotate(-45deg) translateX(300px); }
+        }
+
+        /* Main orbit system - follows scroll */
+        .orbit-system {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            will-change: transform;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+        }
+
+        .orbit-ring {
+            position: absolute;
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.3s ease;
+        }
+
+        .orbit-ring-1 {
+            width: 300px;
+            height: 300px;
+            animation: orbitRotate 30s linear infinite;
+        }
+
+        .orbit-ring-2 {
+            width: 500px;
+            height: 500px;
+            animation: orbitRotate 45s linear infinite reverse;
+        }
+
+        .orbit-ring-3 {
+            width: 700px;
+            height: 700px;
+            animation: orbitRotate 60s linear infinite;
+        }
+
+        .orbit-ring-4 {
+            width: 900px;
+            height: 900px;
+            border-color: rgba(212, 175, 55, 0.08);
+            animation: orbitRotate 90s linear infinite reverse;
+        }
+
+        /* Orbiting planets/dots */
+        .orbit-dot {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: var(--color-gold);
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
+        }
+
+        .orbit-ring-1 .orbit-dot { top: 0; left: 50%; transform: translate(-50%, -50%); }
+        .orbit-ring-2 .orbit-dot { top: 50%; right: 0; transform: translate(50%, -50%); }
+        .orbit-ring-3 .orbit-dot { bottom: 0; left: 50%; transform: translate(-50%, 50%); }
+
+        @keyframes orbitRotate {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Warp speed lines on fast scroll */
+        .warp-lines {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            overflow: hidden;
+        }
+
+        .warp-line {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 2px;
+            height: 0;
+            background: linear-gradient(180deg, transparent 0%, rgba(212, 175, 55, 0.5) 50%, transparent 100%);
+            transform-origin: center top;
+        }
+
+        /* ========================================
+           NAVIGATION
+           ======================================== */
+        .why-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 24px 48px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: linear-gradient(180deg, rgba(10, 10, 10, 0.95) 0%, transparent 100%);
+        }
+
+        .why-nav-logo {
+            font-family: var(--font-serif);
+            font-size: 1.4rem;
+            font-weight: 400;
+            letter-spacing: 0.3em;
+            color: var(--color-ivory);
+            text-decoration: none;
+            text-transform: uppercase;
+        }
+
+        .why-nav-back {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #888;
+            text-decoration: none;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+            transition: color 0.3s ease;
+        }
+
+        .why-nav-back:hover {
+            color: var(--color-gold);
+        }
+
+        .why-nav-back svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* ========================================
+           MAIN CONTENT WRAPPER
+           ======================================== */
+        .content-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ========================================
+           HERO SECTION
+           ======================================== */
+        .hero-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .hero-content {
+            text-align: center;
+            max-width: 900px;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-statement {
+            font-family: var(--font-serif);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 300;
+            line-height: 1.3;
+            color: var(--color-ivory);
+            opacity: 0;
+            animation: fadeInUp 1.2s ease-out 0.3s forwards;
+        }
+
+        .hero-statement em {
+            font-style: italic;
+            color: var(--color-gold);
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 48px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 1.5s forwards;
+        }
+
+        .scroll-indicator span {
+            font-size: 0.7rem;
+            letter-spacing: 0.2em;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .scroll-line {
+            width: 1px;
+            height: 40px;
+            background: linear-gradient(180deg, var(--color-gold) 0%, transparent 100%);
+            animation: scrollPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes scrollPulse {
+            0%, 100% { opacity: 0.3; height: 40px; }
+            50% { opacity: 0.8; height: 50px; }
+        }
+
+        /* ========================================
+           CONTENT SECTIONS
+           ======================================== */
+        .content-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 120px 24px;
+            position: relative;
+        }
+
+        .section-inner {
+            max-width: 700px;
+            opacity: 0;
+            transform: translateY(60px) translateZ(0);
+            transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), 
+                        transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: opacity, transform;
+        }
+
+        .section-inner.visible {
+            opacity: 1;
+            transform: translateY(0) translateZ(0);
+        }
+
+        .section-number {
+            font-family: var(--font-serif);
+            font-size: 0.9rem;
+            color: var(--color-gold);
+            letter-spacing: 0.2em;
+            margin-bottom: 16px;
+            opacity: 0.7;
+        }
+
+        .section-title {
+            font-family: var(--font-serif);
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            font-weight: 400;
+            color: var(--color-ivory);
+            margin-bottom: 32px;
+            line-height: 1.2;
+        }
+
+        .section-text {
+            font-family: var(--font-sans);
+            font-size: 1.05rem;
+            font-weight: 300;
+            color: #999;
+            line-height: 1.9;
+            margin-bottom: 24px;
+        }
+
+        .section-text strong {
+            color: var(--color-ivory);
+            font-weight: 400;
+        }
+
+        .section-text em {
+            font-style: italic;
+            color: var(--color-gold);
+        }
+
+        /* Accent box for key points */
+        .accent-box {
+            border-left: 2px solid var(--color-gold);
+            padding-left: 24px;
+            margin: 32px 0;
+        }
+
+        .accent-box p {
+            font-family: var(--font-serif);
+            font-size: 1.25rem;
+            font-style: italic;
+            color: #ccc;
+            line-height: 1.7;
+        }
+
+        /* ========================================
+           CLOSING SECTION
+           ======================================== */
+        .closing-section {
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 120px 24px;
+            position: relative;
+        }
+
+        .closing-statement {
+            font-family: var(--font-serif);
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            font-weight: 300;
+            color: var(--color-ivory);
+            max-width: 800px;
+            line-height: 1.4;
+            margin-bottom: 64px;
+            opacity: 0;
+            transform: translateY(30px) translateZ(0);
+            transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), 
+                        transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: opacity, transform;
+        }
+
+        .closing-statement.visible {
+            opacity: 1;
+            transform: translateY(0) translateZ(0);
+        }
+
+        .closing-statement em {
+            color: var(--color-gold);
+            font-style: italic;
+        }
+
+        .closing-logo {
+            font-family: var(--font-serif);
+            font-size: 2rem;
+            font-weight: 400;
+            letter-spacing: 0.4em;
+            color: var(--color-gold);
+            text-transform: uppercase;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 0.5s forwards;
+        }
+
+        .closing-tagline {
+            font-size: 0.8rem;
+            color: #666;
+            letter-spacing: 0.15em;
+            margin-top: 12px;
+            text-transform: lowercase;
+        }
+
+        /* ========================================
+           FOOTER
+           ======================================== */
+        .why-footer {
+            padding: 48px 24px;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+            z-index: 1;
+        }
+
+        .why-footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-bottom: 24px;
+        }
+
+        .why-footer-link {
+            font-size: 0.85rem;
+            color: #666;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .why-footer-link:hover {
+            color: var(--color-gold);
+        }
+
+        .why-footer-copyright {
+            font-size: 0.75rem;
+            color: #444;
+        }
+
+        /* ========================================
+           ANIMATIONS
+           ======================================== */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ========================================
+           RESPONSIVE
+           ======================================== */
+        @media (max-width: 768px) {
+            .why-nav {
+                padding: 20px 24px;
+            }
+
+            .why-nav-logo {
+                font-size: 1.1rem;
+                letter-spacing: 0.2em;
+            }
+
+            .orbit-ring-1 { width: 200px; height: 200px; }
+            .orbit-ring-2 { width: 300px; height: 300px; }
+            .orbit-ring-3 { width: 400px; height: 400px; }
+            .orbit-ring-4 { width: 500px; height: 500px; }
+
+            .content-section {
+                padding: 80px 24px;
+                min-height: auto;
+            }
+
+            .section-title {
+                font-size: 1.75rem;
+            }
+
+            .section-text {
+                font-size: 1rem;
+            }
+
+            .nebula {
+                filter: blur(60px);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .why-nav {
+                padding: 16px 20px;
+            }
+
+            .why-nav-back span {
+                display: none;
+            }
+
+            .hero-statement {
+                font-size: 1.6rem;
+            }
+
+            .closing-statement {
+                font-size: 1.3rem;
+            }
+
+            .accent-box p {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- SPACE BACKGROUND - Parallax layers -->
+    <div class="space-container">
+        <!-- Deep space gradient -->
+        <div class="space-gradient"></div>
+        
+        <!-- Star layers with different parallax speeds -->
+        <div class="stars-layer stars-distant" id="starsDistant"></div>
+        <div class="stars-layer stars-mid" id="starsMid"></div>
+        <div class="stars-layer stars-close" id="starsClose"></div>
+        <div class="stars-layer stars-gold" id="starsGold"></div>
+        
+        <!-- Nebula clouds that appear on scroll -->
+        <div class="nebula nebula-1" id="nebula1"></div>
+        <div class="nebula nebula-2" id="nebula2"></div>
+        <div class="nebula nebula-3" id="nebula3"></div>
+        
+        <!-- Shooting stars -->
+        <div class="shooting-star"></div>
+        <div class="shooting-star"></div>
+        <div class="shooting-star"></div>
+        
+        <!-- Main orbit system -->
+        <div class="orbit-system" id="orbitSystem">
+            <div class="orbit-ring orbit-ring-1">
+                <div class="orbit-dot"></div>
+            </div>
+            <div class="orbit-ring orbit-ring-2">
+                <div class="orbit-dot"></div>
+            </div>
+            <div class="orbit-ring orbit-ring-3">
+                <div class="orbit-dot"></div>
+            </div>
+            <div class="orbit-ring orbit-ring-4"></div>
+        </div>
+        
+        <!-- Warp speed effect for fast scrolling -->
+        <div class="warp-lines" id="warpLines"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="why-nav">
+        <a href="index.html" class="why-nav-logo">ORBIT</a>
+        <a href="index.html" class="why-nav-back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            <span>Back to Player</span>
+        </a>
+    </nav>
+
+    <!-- Main Content Wrapper -->
+    <div class="content-wrapper">
+        <!-- Hero Section -->
+        <section class="hero-section" data-section="0">
+            <div class="hero-content">
+                <h1 class="hero-statement">
+                    Orbit was created to let you hear what has <em>never been heard</em> before.
+                </h1>
+            </div>
+            <div class="scroll-indicator">
+                <span>Begin Journey</span>
+                <div class="scroll-line"></div>
+            </div>
+        </section>
+
+        <!-- Vision Section -->
+        <section class="content-section" data-section="1">
+            <div class="section-inner">
+                <span class="section-number">01</span>
+                <h2 class="section-title">The Vision</h2>
+                <p class="section-text">
+                    Orbit is <strong>not Spotify</strong>. It's not a catalog. It's not another streaming platform chasing your attention.
+                </p>
+                <p class="section-text">
+                    It's an <em>exclusive space</em> — a sanctuary to experience songs born from the fusion of artificial intelligence and human imagination.
+                </p>
+                <div class="accent-box">
+                    <p>These songs are ownerless, free, and open. They exist to be listened to, not possessed.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Experiment Section -->
+        <section class="content-section" data-section="2">
+            <div class="section-inner">
+                <span class="section-number">02</span>
+                <h2 class="section-title">What if AI met the human brain?</h2>
+                <p class="section-text">
+                    Orbit explores that question through <strong>sound</strong>.
+                </p>
+                <p class="section-text">
+                    Each track is a creation without boundaries — blending <em>Desi roots</em>, Hindi melodies, and Bhartiya soul with the infinite possibilities of artificial intelligence.
+                </p>
+                <p class="section-text">
+                    It's not about genres. It's not about labels.<br>
+                    <strong>It's about discovery.</strong>
+                </p>
+            </div>
+        </section>
+
+        <!-- Difference Section -->
+        <section class="content-section" data-section="3">
+            <div class="section-inner">
+                <span class="section-number">03</span>
+                <h2 class="section-title">Why Orbit is not Spotify</h2>
+                <p class="section-text">
+                    No endless playlists. No algorithms chasing trends. No recommendation engines trying to predict what you want.
+                </p>
+                <div class="accent-box">
+                    <p>Orbit is curated, intentional, and rare.</p>
+                </div>
+                <p class="section-text">
+                    Every song here was chosen with purpose. This is about <em>experience</em>, not consumption. Quality, not quantity.
+                </p>
+            </div>
+        </section>
+
+        <!-- Promise Section -->
+        <section class="content-section" data-section="4">
+            <div class="section-inner">
+                <span class="section-number">04</span>
+                <h2 class="section-title">Free to All</h2>
+                <p class="section-text">
+                    These songs have <strong>no owner</strong>.
+                </p>
+                <p class="section-text">
+                    They are gifts of experimentation — open for everyone to listen, share, and experience. No paywalls. No subscriptions. No barriers.
+                </p>
+                <div class="accent-box">
+                    <p>Orbit is a cultural experiment, not a commercial product.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Closing Section -->
+        <section class="closing-section" data-section="5">
+            <p class="closing-statement">
+                Orbit is not just music.<br>
+                It's a glimpse into the <em>future of creation</em>.
+            </p>
+            <div class="closing-logo">ORBIT</div>
+            <p class="closing-tagline">hear the unheard</p>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="why-footer">
+        <div class="why-footer-links">
+            <a href="index.html" class="why-footer-link">Home</a>
+            <a href="terms.html" class="why-footer-link">Terms</a>
+        </div>
+        <p class="why-footer-copyright">© 2025 Orbit. All rights reserved.</p>
+    </footer>
+
+    <!-- SPACE JOURNEY SCRIPT -->
+    <script>
+        // ========================================
+        // STAR FIELD GENERATION
+        // ========================================
+        function createStars() {
+            const layers = [
+                { id: 'starsDistant', count: 200 },
+                { id: 'starsMid', count: 100 },
+                { id: 'starsClose', count: 50 },
+                { id: 'starsGold', count: 30 }
+            ];
+
+            layers.forEach(layer => {
+                const container = document.getElementById(layer.id);
+                if (!container) return;
+                
+                for (let i = 0; i < layer.count; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'star';
+                    star.style.left = `${Math.random() * 100}%`;
+                    star.style.top = `${Math.random() * 200}%`; // Extra height for parallax
+                    container.appendChild(star);
+                }
+            });
+        }
+
+        // ========================================
+        // WARP LINES GENERATION
+        // ========================================
+        function createWarpLines() {
+            const container = document.getElementById('warpLines');
+            if (!container) return;
+            
+            for (let i = 0; i < 30; i++) {
+                const line = document.createElement('div');
+                line.className = 'warp-line';
+                const angle = (i / 30) * 360;
+                line.style.transform = `rotate(${angle}deg)`;
+                container.appendChild(line);
+            }
+        }
+
+        // ========================================
+        // PARALLAX SCROLL HANDLER
+        // ========================================
+        // Smooth interpolation values
+        let currentScrollY = 0;
+        let targetScrollY = 0;
+        let currentVelocity = 0;
+        let lastScrollY = 0;
+        
+        // Lerped values for each element
+        let lerpedStarsDistant = 0;
+        let lerpedStarsMid = 0;
+        let lerpedStarsClose = 0;
+        let lerpedStarsGold = 0;
+        let lerpedOrbitX = 0;
+        let lerpedOrbitY = 0;
+        let lerpedOrbitScale = 1;
+        let lerpedNebula1 = { opacity: 0, x: 0, y: 0 };
+        let lerpedNebula2 = { opacity: 0, x: 0, y: 0 };
+        let lerpedNebula3 = { opacity: 0, x: 0, y: 0 };
+        let lerpedWarpOpacity = 0;
+        
+        // Smooth lerp function
+        function lerp(start, end, factor) {
+            return start + (end - start) * factor;
+        }
+        
+        // Ease out cubic for extra smoothness
+        function easeOutCubic(t) {
+            return 1 - Math.pow(1 - t, 3);
+        }
+
+        function updateParallax() {
+            targetScrollY = window.scrollY;
+            const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+            const scrollProgress = targetScrollY / maxScroll;
+            
+            // Smooth scroll interpolation (adjust 0.08 for more/less smoothness)
+            const smoothFactor = 0.08;
+            currentScrollY = lerp(currentScrollY, targetScrollY, smoothFactor);
+            
+            // Smooth velocity calculation
+            const rawVelocity = Math.abs(targetScrollY - lastScrollY);
+            currentVelocity = lerp(currentVelocity, rawVelocity, 0.15);
+            lastScrollY = targetScrollY;
+
+            // Parallax for star layers with lerping
+            const starsDistant = document.getElementById('starsDistant');
+            const starsMid = document.getElementById('starsMid');
+            const starsClose = document.getElementById('starsClose');
+            const starsGold = document.getElementById('starsGold');
+            
+            lerpedStarsDistant = lerp(lerpedStarsDistant, currentScrollY * 0.1, 0.1);
+            lerpedStarsMid = lerp(lerpedStarsMid, currentScrollY * 0.25, 0.08);
+            lerpedStarsClose = lerp(lerpedStarsClose, currentScrollY * 0.4, 0.06);
+            lerpedStarsGold = lerp(lerpedStarsGold, currentScrollY * 0.3, 0.07);
+            
+            if (starsDistant) starsDistant.style.transform = `translate3d(0, ${lerpedStarsDistant}px, 0)`;
+            if (starsMid) starsMid.style.transform = `translate3d(0, ${lerpedStarsMid}px, 0)`;
+            if (starsClose) starsClose.style.transform = `translate3d(0, ${lerpedStarsClose}px, 0)`;
+            if (starsGold) starsGold.style.transform = `translate3d(0, ${lerpedStarsGold}px, 0)`;
+
+            // Orbit system movement with smooth lerping
+            const orbitSystem = document.getElementById('orbitSystem');
+            if (orbitSystem) {
+                const targetOrbitX = Math.sin(scrollProgress * Math.PI * 2) * 100;
+                const targetOrbitY = currentScrollY * 0.2;
+                const targetOrbitScale = 1 + scrollProgress * 0.5;
+                
+                lerpedOrbitX = lerp(lerpedOrbitX, targetOrbitX, 0.05);
+                lerpedOrbitY = lerp(lerpedOrbitY, targetOrbitY, 0.06);
+                lerpedOrbitScale = lerp(lerpedOrbitScale, targetOrbitScale, 0.04);
+                
+                orbitSystem.style.transform = `translate3d(calc(-50% + ${lerpedOrbitX}px), calc(-50% + ${lerpedOrbitY}px), 0) scale(${lerpedOrbitScale})`;
+            }
+
+            // Nebula clouds with smooth lerping
+            const nebula1 = document.getElementById('nebula1');
+            const nebula2 = document.getElementById('nebula2');
+            const nebula3 = document.getElementById('nebula3');
+            
+            if (nebula1) {
+                const targetOpacity1 = Math.min(1, Math.max(0, (scrollProgress - 0.1) * 3)) * 0.6;
+                lerpedNebula1.opacity = lerp(lerpedNebula1.opacity, targetOpacity1, 0.04);
+                lerpedNebula1.x = lerp(lerpedNebula1.x, scrollProgress * 50, 0.03);
+                lerpedNebula1.y = lerp(lerpedNebula1.y, scrollProgress * -30, 0.03);
+                nebula1.style.opacity = lerpedNebula1.opacity;
+                nebula1.style.transform = `translate3d(${lerpedNebula1.x}px, ${lerpedNebula1.y}px, 0)`;
+            }
+            if (nebula2) {
+                const targetOpacity2 = Math.min(1, Math.max(0, (scrollProgress - 0.3) * 3)) * 0.5;
+                lerpedNebula2.opacity = lerp(lerpedNebula2.opacity, targetOpacity2, 0.04);
+                lerpedNebula2.x = lerp(lerpedNebula2.x, scrollProgress * -40, 0.03);
+                lerpedNebula2.y = lerp(lerpedNebula2.y, scrollProgress * 20, 0.03);
+                nebula2.style.opacity = lerpedNebula2.opacity;
+                nebula2.style.transform = `translate3d(${lerpedNebula2.x}px, ${lerpedNebula2.y}px, 0)`;
+            }
+            if (nebula3) {
+                const targetOpacity3 = Math.min(1, Math.max(0, (scrollProgress - 0.5) * 3)) * 0.4;
+                lerpedNebula3.opacity = lerp(lerpedNebula3.opacity, targetOpacity3, 0.04);
+                lerpedNebula3.x = lerp(lerpedNebula3.x, scrollProgress * 30, 0.03);
+                lerpedNebula3.y = lerp(lerpedNebula3.y, scrollProgress * -40, 0.03);
+                nebula3.style.opacity = lerpedNebula3.opacity;
+                nebula3.style.transform = `translate3d(${lerpedNebula3.x}px, ${lerpedNebula3.y}px, 0)`;
+            }
+
+            // Space gradient color shift (smoother)
+            const spaceGradient = document.querySelector('.space-gradient');
+            if (spaceGradient) {
+                const hue1 = 240 + scrollProgress * 20;
+                const hue2 = 260 + scrollProgress * 40;
+                spaceGradient.style.background = `radial-gradient(ellipse at 50% 50%, 
+                    hsl(${hue1}, 20%, 8%) 0%, 
+                    hsl(${hue2}, 15%, 4%) 50%, 
+                    #050508 100%)`;
+            }
+
+            // Warp effect with smooth lerping
+            const warpLines = document.getElementById('warpLines');
+            if (warpLines) {
+                const targetWarpOpacity = Math.min(0.4, currentVelocity / 60);
+                lerpedWarpOpacity = lerp(lerpedWarpOpacity, targetWarpOpacity, 0.1);
+                warpLines.style.opacity = lerpedWarpOpacity;
+                
+                // Smoothly animate warp line heights
+                const lines = warpLines.querySelectorAll('.warp-line');
+                lines.forEach((line, i) => {
+                    const targetHeight = Math.min(150, currentVelocity * 1.5);
+                    const currentHeight = parseFloat(line.dataset.height) || 0;
+                    const newHeight = lerp(currentHeight, targetHeight, 0.15);
+                    line.dataset.height = newHeight;
+                    line.style.height = `${newHeight}px`;
+                });
+            }
+
+            // Continue animation loop
+            requestAnimationFrame(updateParallax);
+        }
+
+        function onScroll() {
+            // Just updates target, actual animation runs in RAF loop
+        }
+
+        // ========================================
+        // SECTION REVEAL OBSERVER
+        // ========================================
+        const observerOptions = {
+            root: null,
+            rootMargin: '-10% 0px -10% 0px',
+            threshold: 0.2
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    
+                    // Trigger nebula effects based on section
+                    const section = entry.target.closest('[data-section]');
+                    if (section) {
+                        const sectionNum = parseInt(section.dataset.section);
+                        updateSectionEffects(sectionNum);
+                    }
+                }
+            });
+        }, observerOptions);
+
+        function updateSectionEffects(sectionNum) {
+            // Adjust orbit ring colors/intensity based on section
+            const rings = document.querySelectorAll('.orbit-ring');
+            rings.forEach((ring, i) => {
+                const intensity = 0.1 + (sectionNum * 0.05);
+                ring.style.borderColor = `rgba(212, 175, 55, ${intensity})`;
+            });
+        }
+
+        // ========================================
+        // INITIALIZE
+        // ========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            createStars();
+            createWarpLines();
+            
+            // Observe content sections
+            document.querySelectorAll('.section-inner, .closing-statement').forEach(el => {
+                observer.observe(el);
+            });
+
+            // Start the smooth animation loop (runs continuously)
+            requestAnimationFrame(updateParallax);
+        });
+    </script>
+</body>
+</html>
