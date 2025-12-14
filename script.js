@@ -997,6 +997,7 @@ function initEventListeners() {
         }
     // (meta helpers moved to global scope)
     // Play/Pause button
+    if (elements.playPauseBtn) elements.playPauseBtn.addEventListener('click', togglePlayPause);
 
     // Skip button
     elements.skipBtn.addEventListener('click', skipTrack);
