@@ -418,6 +418,22 @@ body:not(.playing) .np-bar {
     100% { transform: rotate(720deg); }
 }
 
+/* Mobile performance: disable heavy visuals to avoid layout jitter on phones */
+@media (max-width: 640px) {
+    /* Turn off large blurred glow which can cause repaints */
+    .glow { display: none !important; }
+
+    /* Simplify navbar visuals to prevent text jitter */
+    .nav-logo { text-shadow: none !important; transition: none !important; }
+    .navbar::after { display: none !important; }
+
+    /* Stop NP bar animations on mobile to reduce repaints */
+    .np-bar { animation: none !important; transform: scaleY(0.6) !important; }
+
+    /* Reduce disc rotation size on small devices */
+    .disc-container, .disc-outer { width: 280px; height: 280px; }
+}
+
 /* Geometric Patterns */
 .disc-pattern {
     position: absolute;
