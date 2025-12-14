@@ -89,16 +89,8 @@ Words we'll never say
 
 Velvet night surrounds us
 Time suspended here
-            // Update URL fragment, meta tags and JSON-LD for this track (useful for shared links)
-            try {
-                const url = `${window.location.origin}${window.location.pathname}#song=${state.currentTrackIndex}`;
-                // Update browser URL without reloading
-                try { history.replaceState(null, '', `#song=${state.currentTrackIndex}`); } catch (e) { /* ignore */ }
-                updateSongMetaTags(track, url);
-                insertTrackJsonLd(track, url);
-            } catch (e) {
-                // ignore
-            }
+`,
+        audio_url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
     },
     {
         id: 5,
