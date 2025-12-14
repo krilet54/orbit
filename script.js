@@ -239,38 +239,6 @@ let state = {
     lastSharedUrl: ''
 };
 
-// Global error handlers to surface initialization failures and hide loading screen
-window.addEventListener('error', (e) => {
-    try {
-        console.error('Global error:', e.error || e.message || e);
-        const ls = document.getElementById('loadingScreen');
-        if (ls) ls.classList.add('hidden');
-        const existing = document.querySelector('.loading-error');
-        if (!existing) {
-            const err = document.createElement('div');
-            err.className = 'loading-error';
-            err.textContent = 'App initialization error — open console for details.';
-            document.body.appendChild(err);
-        }
-        window.__loadingFallback && window.__loadingFallback.clear();
-    } catch (err) { /* ignore */ }
-});
-
-window.addEventListener('unhandledrejection', (ev) => {
-    try {
-        console.error('Unhandled promise rejection:', ev.reason);
-        const ls = document.getElementById('loadingScreen');
-        if (ls) ls.classList.add('hidden');
-        const existing = document.querySelector('.loading-error');
-        if (!existing) {
-            const err = document.createElement('div');
-            err.className = 'loading-error';
-            err.textContent = 'App initialization error — open console for details.';
-            document.body.appendChild(err);
-        }
-        window.__loadingFallback && window.__loadingFallback.clear();
-    } catch (err) { /* ignore */ }
-});
 
 // ========================================
 // UTILITY FUNCTIONS
@@ -985,18 +953,6 @@ function showToast(msg) {
     setTimeout(() => { toast.classList.remove('visible'); toast.remove(); }, 2200);
 }
 
-// simple debug helper: prints app state to console and shows toast
-function dumpAppState() {
-    try {
-        console.log('APP STATE DUMP', {
-            currentTrackIndex: state.currentTrackIndex,
-            tracksLoaded: Array.isArray(state.tracks) && state.tracks.length,
-            audioReady: !!audioPlayer && !audioPlayer.paused,
-            url: location.href
-        });
-        showToast('State dumped to console');
-    } catch (e) { console.error(e); }
-}
 
 
 // ========================================
@@ -1038,9 +994,6 @@ function initEventListeners() {
         }
     // (meta helpers moved to global scope)
     // Play/Pause button
-    
-        const dbg = document.getElementById('debugDumpBtn');
-        if (dbg) dbg.addEventListener('click', dumpAppState);
 
     // Skip button
     elements.skipBtn.addEventListener('click', skipTrack);
