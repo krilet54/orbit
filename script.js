@@ -399,12 +399,12 @@ function play() {
         state.isInitialized = true;
     }
 
-    elements.audioPlayer.play()
+    return elements.audioPlayer.play()
         .then(() => {
             state.isPlaying = true;
             updatePlayState();
             console.log('Playback started successfully');
-            
+
             // Show shortcuts toast on first play
             if (!state.hasShownShortcuts) {
                 showShortcutsToast();
@@ -413,6 +413,7 @@ function play() {
         })
         .catch(error => {
             console.error('Playback failed:', error);
+            throw error;
         });
 }
 
@@ -943,6 +944,63 @@ function insertTrackJsonLd(track, url) {
     script.textContent = JSON.stringify(recording, null, 2);
 }
 
+// Show a small tap-to-play overlay when autoplay is blocked by the browser
+function showTapToPlayOverlay(track) {
+    try {
+        // Avoid creating multiple overlays
+        if (document.getElementById('tapToPlayOverlay')) return;
+
+        const overlay = document.createElement('div');
+        overlay.id = 'tapToPlayOverlay';
+        overlay.style.position = 'fixed';
+        overlay.style.inset = '0';
+        overlay.style.display = 'flex';
+        overlay.style.alignItems = 'center';
+        overlay.style.justifyContent = 'center';
+        overlay.style.background = 'rgba(10,10,10,0.6)';
+        overlay.style.zIndex = '10010';
+
+        const card = document.createElement('div');
+        card.style.background = '#0f0f0f';
+        card.style.border = '1px solid rgba(212,175,55,0.12)';
+        card.style.padding = '18px 22px';
+        card.style.borderRadius = '10px';
+        card.style.textAlign = 'center';
+        card.style.color = '#f5f5f0';
+        card.style.maxWidth = '90%';
+        card.style.boxShadow = '0 6px 30px rgba(0,0,0,0.6)';
+
+        const title = document.createElement('div');
+        title.textContent = track.title || 'Tap to play';
+        title.style.fontSize = '1.05rem';
+        title.style.marginBottom = '8px';
+
+        const btn = document.createElement('button');
+        btn.textContent = 'Tap to play';
+        btn.style.background = '#d4af37';
+        btn.style.color = '#0a0a0a';
+        btn.style.border = 'none';
+        btn.style.padding = '10px 18px';
+        btn.style.borderRadius = '6px';
+        btn.style.fontWeight = '600';
+        btn.style.cursor = 'pointer';
+
+        btn.addEventListener('click', async () => {
+            try {
+                await play();
+            } catch (e) {
+                console.warn('Play after tap still failed:', e);
+            }
+            overlay.remove();
+        });
+
+        card.appendChild(title);
+        card.appendChild(btn);
+        overlay.appendChild(card);
+        document.body.appendChild(overlay);
+    } catch (e) { console.error(e); }
+}
+
 // Show a toast for fallback share (global)
 function showToast(msg) {
     let toast = document.createElement('div');
@@ -1074,25 +1132,33 @@ async function init() {
     // Set up event listeners early so controls work even if loading fails
     initEventListeners();
 
-    // If deep-link, play that song, else random
-    const params = new URLSearchParams(window.location.search);
-    const songId = params.get('song');
-    if (songId) {
-        // Accept numeric fragment (index) or query param; prefer numeric index to avoid UUID mismatches
-        const parsedIndex = Number(songId);
+    // If deep-link, prefer hash fragment `#song={index}` then fallback to query param
+    let deepSong = null;
+    try {
+        if (location.hash && location.hash.startsWith('#song=')) {
+            deepSong = location.hash.replace('#song=', '');
+        } else {
+            const params = new URLSearchParams(window.location.search);
+            deepSong = params.get('song');
+        }
+    } catch (e) { deepSong = null; }
+
+    if (deepSong) {
+        const parsedIndex = Number(deepSong);
         if (!isNaN(parsedIndex) && parsedIndex >= 0 && parsedIndex < state.tracks.length) {
             try {
                 loadTrack(parsedIndex);
-                play();
+                // Attempt to autoplay; if blocked, show tap-to-play overlay
+                try { await play(); } catch (err) { showTapToPlayOverlay(state.tracks[parsedIndex]); }
             } catch (e) {
                 console.warn('Failed to load deep-linked track index:', e);
                 loadTrack(getRandomTrackIndex());
             }
         } else {
-            // Fallback: look for a track by id only if songId looks non-numeric
-            const idx = state.tracks.findIndex(t => String(t.id) === String(songId));
+            // Fallback: look for a track by id only if deepSong looks non-numeric
+            const idx = state.tracks.findIndex(t => String(t.id) === String(deepSong));
             if (idx !== -1) {
-                try { loadTrack(idx); play(); } catch (e) { loadTrack(getRandomTrackIndex()); }
+                try { loadTrack(idx); try { await play(); } catch (err) { showTapToPlayOverlay(state.tracks[idx]); } } catch (e) { loadTrack(getRandomTrackIndex()); }
             } else {
                 loadTrack(getRandomTrackIndex());
             }
