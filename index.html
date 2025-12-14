@@ -10,7 +10,7 @@
     <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230a0a0a'/%3E%3Ccircle cx='50' cy='50' r='35' fill='none' stroke='%23d4af37' stroke-width='2'/%3E%3Ccircle cx='50' cy='50' r='12' fill='%23d4af37'/%3E%3C/svg%3E">
     
     <!-- Meta Tags -->
-    <meta name="description" content="ORBIT — A premium AI-curated jukebox. Hear the unheard. Discover music created through the fusion of AI and human imagination.">
+                        err.textContent = 'Taking longer than expected — open console for errors.';
     <meta name="keywords" content="AI music, jukebox, orbit, premium music, AI generated music">
     <meta name="author" content="Microsite Studio">
     <meta name="theme-color" content="#0a0a0a">
@@ -244,6 +244,7 @@
                             <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
                         </svg>
                     </button>
+                        <button class="control-btn" id="debugDumpBtn" title="Log app state to console">Debug</button>
                 </div>
 
                 <!-- Progress Bar -->
@@ -402,6 +403,27 @@
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
+    <!-- Fallback: if app JS doesn't initialize, hide loading screen and show message after 7s -->
+    <script>
+        (function(){
+            const timeout = 7000;
+            const tid = setTimeout(() => {
+                try {
+                    const ls = document.getElementById('loadingScreen');
+                    if (ls && !ls.classList.contains('hidden')) {
+                        ls.classList.add('hidden');
+                        const err = document.createElement('div');
+                        err.className = 'loading-error';
+                        err.textContent = 'App failed to initialize — open the console for details.';
+                        document.body.appendChild(err);
+                    }
+                } catch (e) { /* ignore */ }
+            }, timeout);
+
+            // If app successfully hides loading screen it should remove this timeout by calling clearTimeout on window.__loadingFallback
+            window.__loadingFallback = { clear: () => clearTimeout(tid) };
+        })();
+    </script>
     <script src="script.js"></script>
 </body>
 </html>
