@@ -432,14 +432,11 @@ function skipTrack() {
     setTimeout(() => {
         elements.jukebox.classList.remove('spin-burst');
         
-        // Load next random track
-        const nextIndex = getRandomTrackIndex(state.currentTrackIndex);
-        loadTrack(nextIndex);
-
-        // Auto-play if was playing
-        if (state.isPlaying) {
-            play();
-        } else {
+        // Load next track (deterministic) so Up Next preview stays accurate
+        const nextIndex = getNextTrackIndex();
+        if (nextIndex >= 0) {
+            loadTrack(nextIndex);
+            // Always attempt to play after skipping
             play();
         }
     }, 500);
@@ -846,11 +843,7 @@ function detectBeat() {
             glow.style.filter = `blur(${blurAmount}px) brightness(${brightness})`;
         }
         
-        // Update navbar glow intensity
-        if (navbar) {
-            const combinedIntensity = (smoothBass * 0.7 + smoothHighs * 0.3);
-            navbar.style.setProperty('--audio-intensity', combinedIntensity);
-        }
+        // Navbar audio-reactive update removed to prevent layout jitter
 
         const now = Date.now();
         if (totalBass > beatThreshold && now - lastBeatTime > beatCooldown) {
@@ -860,13 +853,7 @@ function detectBeat() {
                 elements.jukebox.classList.remove('beat-active');
             }, 80);
             
-            // Trigger beat animation on navbar
-            if (navbar) {
-                navbar.classList.add('beat-active');
-                setTimeout(() => {
-                    navbar.classList.remove('beat-active');
-                }, 80);
-            }
+            // Navbar beat animation removed to prevent jitter on mobile
             
             lastBeatTime = now;
         }
