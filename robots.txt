@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://orbit.audio/sitemap.xml
+
+# Crawl-delay can be added if needed for low-resource hosts
+# Crawl-delay: 10
