@@ -15,11 +15,17 @@
         <div class="login-card">
             <!-- Logo -->
             <div class="login-header">
-                <h1 class="login-logo">Login</h1>
+                <div class="brand">
+                    <div class="brand-mark" aria-hidden="true">⭑</div>
+                    <div>
+                        <h1 class="login-logo">ORBIT Admin</h1>
+                        <div class="login-subtitle">Manage tracks, uploads & settings</div>
+                    </div>
+                </div>
             </div>
 
             <!-- Login Form -->
-            <form id="loginForm" class="login-form">
+            <form id="loginForm" class="login-form" autocomplete="on">
                 <div class="form-group">
                     <label for="email" class="form-label">Email</label>
                     <input 
@@ -49,7 +55,7 @@
 
                 <!-- Submit Button -->
                 <button type="submit" class="btn-primary" id="loginBtn">
-                    <span class="btn-text">Login</span>
+                    <span class="btn-text">Sign in</span>
                     <span class="btn-loading">
                         <svg class="spinner" viewBox="0 0 24 24">
                             <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="31.4 31.4" stroke-linecap="round"/>
@@ -65,6 +71,7 @@
                 </svg>
                 Back to ORBIT
             </a>
+        </div>
         </div>
     </main>
 
