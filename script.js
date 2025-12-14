@@ -944,62 +944,7 @@ function insertTrackJsonLd(track, url) {
     script.textContent = JSON.stringify(recording, null, 2);
 }
 
-// Show a small tap-to-play overlay when autoplay is blocked by the browser
-function showTapToPlayOverlay(track) {
-    try {
-        // Avoid creating multiple overlays
-        if (document.getElementById('tapToPlayOverlay')) return;
-
-        const overlay = document.createElement('div');
-        overlay.id = 'tapToPlayOverlay';
-        overlay.style.position = 'fixed';
-        overlay.style.inset = '0';
-        overlay.style.display = 'flex';
-        overlay.style.alignItems = 'center';
-        overlay.style.justifyContent = 'center';
-        overlay.style.background = 'rgba(10,10,10,0.6)';
-        overlay.style.zIndex = '10010';
-
-        const card = document.createElement('div');
-        card.style.background = '#0f0f0f';
-        card.style.border = '1px solid rgba(212,175,55,0.12)';
-        card.style.padding = '18px 22px';
-        card.style.borderRadius = '10px';
-        card.style.textAlign = 'center';
-        card.style.color = '#f5f5f0';
-        card.style.maxWidth = '90%';
-        card.style.boxShadow = '0 6px 30px rgba(0,0,0,0.6)';
-
-        const title = document.createElement('div');
-        title.textContent = track.title || 'Tap to play';
-        title.style.fontSize = '1.05rem';
-        title.style.marginBottom = '8px';
-
-        const btn = document.createElement('button');
-        btn.textContent = 'Tap to play';
-        btn.style.background = '#d4af37';
-        btn.style.color = '#0a0a0a';
-        btn.style.border = 'none';
-        btn.style.padding = '10px 18px';
-        btn.style.borderRadius = '6px';
-        btn.style.fontWeight = '600';
-        btn.style.cursor = 'pointer';
-
-        btn.addEventListener('click', async () => {
-            try {
-                await play();
-            } catch (e) {
-                console.warn('Play after tap still failed:', e);
-            }
-            overlay.remove();
-        });
-
-        card.appendChild(title);
-        card.appendChild(btn);
-        overlay.appendChild(card);
-        document.body.appendChild(overlay);
-    } catch (e) { console.error(e); }
-}
+// (removed tap-to-play overlay — autoplay is user-controlled)
 
 // Show a toast for fallback share (global)
 function showToast(msg) {
@@ -1024,7 +969,7 @@ function initEventListeners() {
             shareBtn.addEventListener('click', async () => {
                 const track = state.tracks[state.currentTrackIndex];
                 if (!track) return;
-                const url = `${window.location.origin}${window.location.pathname}?song=${encodeURIComponent(track.id)}`;
+                const url = `${window.location.origin}${window.location.pathname}#song=${state.currentTrackIndex}`;
                 state.lastSharedUrl = url;
                 // Update meta tags for sharing
                 updateSongMetaTags(track, url);
@@ -1148,8 +1093,7 @@ async function init() {
         if (!isNaN(parsedIndex) && parsedIndex >= 0 && parsedIndex < state.tracks.length) {
             try {
                 loadTrack(parsedIndex);
-                // Attempt to autoplay; if blocked, show tap-to-play overlay
-                try { await play(); } catch (err) { showTapToPlayOverlay(state.tracks[parsedIndex]); }
+                // Do not attempt autoplay automatically — leave playback to user interaction
             } catch (e) {
                 console.warn('Failed to load deep-linked track index:', e);
                 loadTrack(getRandomTrackIndex());
@@ -1158,7 +1102,7 @@ async function init() {
             // Fallback: look for a track by id only if deepSong looks non-numeric
             const idx = state.tracks.findIndex(t => String(t.id) === String(deepSong));
             if (idx !== -1) {
-                try { loadTrack(idx); try { await play(); } catch (err) { showTapToPlayOverlay(state.tracks[idx]); } } catch (e) { loadTrack(getRandomTrackIndex()); }
+                try { loadTrack(idx); } catch (e) { loadTrack(getRandomTrackIndex()); }
             } else {
                 loadTrack(getRandomTrackIndex());
             }
