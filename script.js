@@ -89,14 +89,16 @@ Words we'll never say
 
 Velvet night surrounds us
 Time suspended here
-In this moment captured
-Everything is clear
-
-The melody carries us
-Through shadows soft and deep
-In this velvet night
-Promises we'll keep`,
-        audio_url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+            // Update URL fragment, meta tags and JSON-LD for this track (useful for shared links)
+            try {
+                const url = `${window.location.origin}${window.location.pathname}#song=${state.currentTrackIndex}`;
+                // Update browser URL without reloading
+                try { history.replaceState(null, '', `#song=${state.currentTrackIndex}`); } catch (e) { /* ignore */ }
+                updateSongMetaTags(track, url);
+                insertTrackJsonLd(track, url);
+            } catch (e) {
+                // ignore
+            }
     },
     {
         id: 5,
@@ -382,7 +384,8 @@ function loadTrack(index) {
 
     // Update meta tags and JSON-LD for this track (useful for shared links)
     try {
-        const url = `${window.location.origin}${window.location.pathname}?song=${encodeURIComponent(track.id)}`;
+            // Use numeric index fragment instead of UUIDs to avoid deep-link mismatch
+            const url = `${window.location.origin}${window.location.pathname}#song=${state.currentTrackIndex}`;
         updateSongMetaTags(track, url);
         insertTrackJsonLd(track, url);
     } catch (e) {
@@ -1080,24 +1083,27 @@ async function init() {
     const params = new URLSearchParams(window.location.search);
     const songId = params.get('song');
     if (songId) {
-        const idx = state.tracks.findIndex(t => String(t.id) === String(songId));
-        if (idx !== -1) {
+        // Accept numeric fragment (index) or query param; prefer numeric index to avoid UUID mismatches
+        const parsedIndex = Number(songId);
+        if (!isNaN(parsedIndex) && parsedIndex >= 0 && parsedIndex < state.tracks.length) {
             try {
-                loadTrack(idx);
-                // Try to autoplay; browsers may block this until interaction
+                loadTrack(parsedIndex);
                 play();
             } catch (e) {
-                console.warn('Failed to load deep-linked track:', e);
-                const initialTrack = getRandomTrackIndex();
-                loadTrack(initialTrack);
+                console.warn('Failed to load deep-linked track index:', e);
+                loadTrack(getRandomTrackIndex());
             }
         } else {
-            const initialTrack = getRandomTrackIndex();
-            loadTrack(initialTrack);
+            // Fallback: look for a track by id only if songId looks non-numeric
+            const idx = state.tracks.findIndex(t => String(t.id) === String(songId));
+            if (idx !== -1) {
+                try { loadTrack(idx); play(); } catch (e) { loadTrack(getRandomTrackIndex()); }
+            } else {
+                loadTrack(getRandomTrackIndex());
+            }
         }
     } else {
-        const initialTrack = getRandomTrackIndex();
-        loadTrack(initialTrack);
+        loadTrack(getRandomTrackIndex());
     }
     
     // Initialize progress bar
