@@ -379,6 +379,15 @@ function loadTrack(index) {
     
     // Update queue preview
     updateQueuePreview();
+
+    // Update meta tags and JSON-LD for this track (useful for shared links)
+    try {
+        const url = `${window.location.origin}${window.location.pathname}?song=${encodeURIComponent(track.id)}`;
+        updateSongMetaTags(track, url);
+        insertTrackJsonLd(track, url);
+    } catch (e) {
+        // ignore
+    }
 }
 
 function play() {
@@ -865,6 +874,89 @@ function detectBeat() {
 }
 
 // ========================================
+// META & JSON-LD HELPERS (global)
+// ========================================
+
+function setMeta(property, content) {
+    let meta = document.querySelector(`meta[property='${property}'], meta[name='${property}']`);
+    if (!meta) {
+        meta = document.createElement('meta');
+        if (property.startsWith('og:')) {
+            meta.setAttribute('property', property);
+        } else {
+            meta.setAttribute('name', property);
+        }
+        document.head.appendChild(meta);
+    }
+    meta.setAttribute('content', content);
+}
+
+function updateSongMetaTags(track, url) {
+    setMeta('og:title', `${track.title} — ORBIT AI Jukebox`);
+    setMeta('og:description', track.summary || 'Hear the unheard. Discover music created through the fusion of AI and human imagination.');
+    setMeta('og:url', url);
+    setMeta('twitter:title', `${track.title} — ORBIT AI Jukebox`);
+    setMeta('twitter:description', track.summary || 'Hear the unheard. Discover music created through the fusion of AI and human imagination.');
+    setMeta('twitter:url', url);
+    let cover = track.cover_url || 'https://orbit.audio/og-image.jpg';
+    setMeta('og:image', cover);
+    setMeta('twitter:image', cover);
+}
+
+function insertTrackJsonLd(track, url) {
+    const cover = track.cover_url || 'https://orbit.audio/og-image.jpg';
+    const recording = {
+        "@context": "https://schema.org",
+        "@type": "MusicRecording",
+        name: track.title,
+        url: url,
+        byArtist: { "@type": "MusicGroup", name: "ORBIT" },
+        image: cover,
+        description: track.summary || '',
+        inAlbum: { "@type": "MusicAlbum", name: track.theme || 'ORBIT Tracks' },
+        potentialAction: {
+            "@type": "ListenAction",
+            target: {
+                "@type": "EntryPoint",
+                urlTemplate: track.audio_url
+            }
+        }
+    };
+
+    // Optionally include duration if available on the audio element
+    try {
+        const dur = elements.audioPlayer.duration;
+        if (!isNaN(dur) && isFinite(dur) && dur > 0) {
+            const mins = Math.floor(dur / 60);
+            const secs = Math.floor(dur % 60);
+            recording.duration = `PT${mins}M${secs}S`;
+        }
+    } catch (e) {
+        // ignore
+    }
+
+    let script = document.getElementById('track-json-ld');
+    if (!script) {
+        script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.id = 'track-json-ld';
+        document.head.appendChild(script);
+    }
+    script.textContent = JSON.stringify(recording, null, 2);
+}
+
+// Show a toast for fallback share (global)
+function showToast(msg) {
+    let toast = document.createElement('div');
+    toast.className = 'share-toast';
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.classList.add('visible'); }, 10);
+    setTimeout(() => { toast.classList.remove('visible'); toast.remove(); }, 2200);
+}
+
+
+// ========================================
 // EVENT LISTENERS
 // ========================================
 
@@ -901,44 +993,7 @@ function initEventListeners() {
                 }
             });
         }
-    // Update Open Graph and Twitter meta tags for sharing
-    function updateSongMetaTags(track, url) {
-        setMeta('og:title', `${track.title} — ORBIT AI Jukebox`);
-        setMeta('og:description', track.summary || 'Hear the unheard. Discover music created through the fusion of AI and human imagination.');
-        setMeta('og:url', url);
-        setMeta('twitter:title', `${track.title} — ORBIT AI Jukebox`);
-        setMeta('twitter:description', track.summary || 'Hear the unheard. Discover music created through the fusion of AI and human imagination.');
-        setMeta('twitter:url', url);
-        // Use cover art if available, else fallback
-        let cover = track.cover_url || 'https://orbit.audio/og-image.jpg';
-        setMeta('og:image', cover);
-        setMeta('twitter:image', cover);
-    }
-
-    function setMeta(property, content) {
-        let meta = document.querySelector(`meta[property='${property}'], meta[name='${property}']`);
-        if (!meta) {
-            // Try to create if not found
-            meta = document.createElement('meta');
-            if (property.startsWith('og:')) {
-                meta.setAttribute('property', property);
-            } else {
-                meta.setAttribute('name', property);
-            }
-            document.head.appendChild(meta);
-        }
-        meta.setAttribute('content', content);
-    }
-
-    // Show a toast for fallback share
-    function showToast(msg) {
-        let toast = document.createElement('div');
-        toast.className = 'share-toast';
-        toast.textContent = msg;
-        document.body.appendChild(toast);
-        setTimeout(() => { toast.classList.add('visible'); }, 10);
-        setTimeout(() => { toast.classList.remove('visible'); toast.remove(); }, 2200);
-    }
+    // (meta helpers moved to global scope)
     // Play/Pause button
     elements.playPauseBtn.addEventListener('click', togglePlayPause);
 
@@ -1018,7 +1073,8 @@ async function init() {
         elements.songSummary.textContent = 'Check back soon for new music.';
         return;
     }
-
+    // Set up event listeners early so controls work even if loading fails
+    initEventListeners();
 
     // If deep-link, play that song, else random
     const params = new URLSearchParams(window.location.search);
@@ -1026,9 +1082,15 @@ async function init() {
     if (songId) {
         const idx = state.tracks.findIndex(t => String(t.id) === String(songId));
         if (idx !== -1) {
-            loadTrack(idx);
-            // Optionally autoplay
-            play();
+            try {
+                loadTrack(idx);
+                // Try to autoplay; browsers may block this until interaction
+                play();
+            } catch (e) {
+                console.warn('Failed to load deep-linked track:', e);
+                const initialTrack = getRandomTrackIndex();
+                loadTrack(initialTrack);
+            }
         } else {
             const initialTrack = getRandomTrackIndex();
             loadTrack(initialTrack);
@@ -1037,9 +1099,6 @@ async function init() {
         const initialTrack = getRandomTrackIndex();
         loadTrack(initialTrack);
     }
-
-    // Set up event listeners
-    initEventListeners();
     
     // Initialize progress bar
     initProgressBar();
