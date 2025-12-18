@@ -170,42 +170,7 @@ async function loadTracksFromSupabase() {
 
         if (data && data.length > 0) {
             console.log(`Loaded ${data.length} songs from Supabase`);
-            // If tracks include Supabase storage public URLs, replace with signed URLs via our API
-            try {
-                const tracks = data;
-
-                // Helper: detect storage public URL and extract object path
-                const supabaseUrl = window.SUPABASE_URL ? window.SUPABASE_URL.replace(/\/$/, '') : null;
-                const publicPrefix = supabaseUrl ? `${supabaseUrl}/storage/v1/object/public/` : null;
-
-                if (publicPrefix) {
-                    // For each track that looks like a storage public object, request a signed URL
-                    await Promise.all(tracks.map(async (t) => {
-                        try {
-                            if (!t.audio_url) return;
-                            if (t.audio_url.startsWith(publicPrefix)) {
-                                const objectPath = t.audio_url.substring(publicPrefix.length);
-                                // Call serverless endpoint to get a signed URL (deployed on the same origin)
-                                const resp = await fetch(`/api/signed-url?path=${encodeURIComponent(objectPath)}`);
-                                if (resp.ok) {
-                                    const j = await resp.json();
-                                    // Supabase may return different key names; prefer signedURL or signedUrl
-                                    t.audio_url = j.signedURL || j.signedUrl || j.signed_url || j.url || t.audio_url;
-                                } else {
-                                    console.warn('Signed URL fetch failed for', objectPath, await resp.text());
-                                }
-                            }
-                        } catch (e) {
-                            console.warn('Failed to fetch signed url for track', t, e);
-                        }
-                    }));
-                }
-
-                return tracks;
-            } catch (err) {
-                console.warn('Error resolving signed URLs, returning raw data', err);
-                return data;
-            }
+            return data;
         }
 
         console.log('No songs in Supabase, using fallback tracks');
@@ -406,43 +371,11 @@ function loadTrack(index) {
         elements.songDetails.classList.remove('transitioning');
     }, 150);
 
-    // Load audio — resolve signed URLs for private storage objects when necessary
+    // Load audio
     const audioUrl = track.audio_url;
     console.log('Loading audio from:', audioUrl);
-
-    // Resolve signed URL asynchronously to avoid blocking the UI.
-    (async () => {
-        try {
-            let src = audioUrl;
-
-            // If the URL is not already absolute (http(s)/blob/data), request a signed URL
-            if (!/^(https?:|blob:|data:)/.test(src)) {
-                // If the stored value is a public Supabase URL, extract the object path
-                const supabaseUrl = window.SUPABASE_URL ? window.SUPABASE_URL.replace(/\/$/, '') : null;
-                const publicPrefix = supabaseUrl ? `${supabaseUrl}/storage/v1/object/public/` : null;
-                let objectPath = src;
-                if (publicPrefix && src.startsWith(publicPrefix)) {
-                    objectPath = src.substring(publicPrefix.length);
-                }
-
-                // Request signed URL from serverless endpoint
-                const resp = await fetch(`/api/signed-url?path=${encodeURIComponent(objectPath)}`);
-                if (resp.ok) {
-                    const j = await resp.json();
-                    src = j.signedURL || j.signedUrl || j.signed_url || j.url || src;
-                } else {
-                    console.warn('Signed URL fetch failed for', objectPath, await resp.text());
-                }
-            }
-
-            elements.audioPlayer.src = src;
-            elements.audioPlayer.load();
-        } catch (e) {
-            console.warn('Error resolving audio src, falling back to raw url', e);
-            elements.audioPlayer.src = audioUrl;
-            elements.audioPlayer.load();
-        }
-    })();
+    elements.audioPlayer.src = audioUrl;
+    elements.audioPlayer.load();
 
     state.currentTrackIndex = index;
     
