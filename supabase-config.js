@@ -6,8 +6,12 @@
 const SUPABASE_URL = 'https://awcxgnlltfrwytwejvva.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3Y3hnbmxsdGZyd3l0d2VqdnZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2MTQ5NTksImV4cCI6MjA4MTE5MDk1OX0.Sx_DaV3iXlEABX3r3pqU0t2_XndHvdDKMvxiXG9Ksho';
 
+// expose values on window for other scripts that check them
+window.SUPABASE_URL = SUPABASE_URL;
+window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
+
 // Initialize Supabase client
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
 /* ========================================
    DATABASE SCHEMA SETUP
