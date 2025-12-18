@@ -144,11 +144,16 @@ Deep within your soul`,
 
 async function loadTracksFromSupabase() {
     try {
-        // Check if Supabase is configured
-        if (typeof orbitSupabase === 'undefined' || 
-            typeof SUPABASE_URL === 'undefined' ||
-            SUPABASE_URL === 'YOUR_SUPABASE_PROJECT_URL') {
-            console.log('Supabase not configured, using fallback tracks');
+        // Debug: log supabase presence to help diagnose config issues
+        console.log('Supabase config:', {
+            orbitSupabase: typeof window.orbitSupabase !== 'undefined',
+            SUPABASE_URL: typeof window.SUPABASE_URL !== 'undefined' ? window.SUPABASE_URL : null,
+            location: window.location && window.location.origin
+        });
+
+        // Check if Supabase is configured (use window.* checks to avoid ReferenceErrors)
+        if (!window.orbitSupabase || !window.SUPABASE_URL || window.SUPABASE_URL === 'YOUR_SUPABASE_PROJECT_URL') {
+            console.log('Supabase not configured (or missing window.orbitSupabase / SUPABASE_URL), using fallback tracks');
             return fallbackTracks;
         }
 
@@ -159,7 +164,7 @@ async function loadTracksFromSupabase() {
             .order('created_at', { ascending: false });
 
         if (error) {
-            console.error('Supabase error:', error);
+            console.error('Supabase query error:', error);
             return fallbackTracks;
         }
 
