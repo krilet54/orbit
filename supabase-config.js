@@ -10,8 +10,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 window.SUPABASE_URL = SUPABASE_URL;
 window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
 
-// Initialize Supabase client
-const supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+// Initialize Supabase client (use a distinct name to avoid colliding with the library global)
+const orbitSupabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
 /* ========================================
    DATABASE SCHEMA SETUP
@@ -48,4 +48,4 @@ const supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABA
    ======================================== */
 
 // Export for use in other modules
-window.orbitSupabase = supabase;
+window.orbitSupabase = orbitSupabaseClient;
