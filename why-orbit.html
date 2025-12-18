@@ -774,29 +774,6 @@
         <p class="why-footer-copyright">© 2025 Orbit. All rights reserved.</p>
     </footer>
 
-    <!-- Background ambient audio (space theme) -->
-    <audio id="bgAudio" preload="auto" loop crossorigin="anonymous" src="/assets/space-ambient.mp3"></audio>
-    <button id="soundToggle" class="sound-toggle">Enable Sound</button>
-
-    <style>
-        .sound-toggle {
-            position: fixed;
-            bottom: 18px;
-            right: 18px;
-            z-index: 9999;
-            background: rgba(10,10,10,0.9);
-            color: #f5f5f0;
-            border: 1px solid rgba(212,175,55,0.12);
-            padding: 10px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-family: Inter, system-ui, sans-serif;
-            font-size: 0.95rem;
-            backdrop-filter: blur(6px);
-        }
-        .sound-toggle.hidden { display: none; }
-    </style>
-
     <!-- SPACE JOURNEY SCRIPT -->
     <script>
         // ========================================
@@ -1031,104 +1008,6 @@
             // Start the smooth animation loop (runs continuously)
             requestAnimationFrame(updateParallax);
         });
-    </script>
-
-    <script>
-        // Background ambient audio controller
-        (function(){
-            const audio = document.getElementById('bgAudio');
-            const toggle = document.getElementById('soundToggle');
-            if (!audio || !toggle) return;
-
-            // Initial states
-            let userEnabled = localStorage.getItem('orbit-bg-sound-enabled') === 'true';
-            let targetVolume = 0.45; // desired audible volume
-            let fadeInterval = null;
-
-            // Start audio muted (browsers block autoplay with sound)
-            audio.volume = 0;
-            audio.muted = !userEnabled;
-
-            // If user previously enabled sound, reveal button as active state
-            if (userEnabled) {
-                toggle.textContent = 'Sound: On';
-            }
-
-            // Fade helper
-            function fadeTo(vol, duration = 400) {
-                if (!audio) return;
-                if (fadeInterval) clearInterval(fadeInterval);
-                const steps = 20;
-                const stepTime = Math.max(10, duration / steps);
-                const start = audio.volume;
-                const delta = vol - start;
-                let step = 0;
-                fadeInterval = setInterval(() => {
-                    step++;
-                    const v = start + (delta * (step / steps));
-                    audio.volume = Math.max(0, Math.min(1, v));
-                    if (step >= steps) {
-                        clearInterval(fadeInterval);
-                        fadeInterval = null;
-                    }
-                }, stepTime);
-            }
-
-            // IntersectionObserver to play/fade when sections enter
-            const io = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        // Ensure audio is playing (muted if user hasn't enabled sound)
-                        if (audio.paused) {
-                            audio.play().catch(()=>{});
-                        }
-                        // If user enabled, fade in; otherwise keep muted but play silently
-                        if (localStorage.getItem('orbit-bg-sound-enabled') === 'true') {
-                            audio.muted = false;
-                            fadeTo(targetVolume, 600);
-                        } else {
-                            // keep volume 0 but continue playing so it's ready
-                            fadeTo(0, 200);
-                        }
-                    } else {
-                        // Fade out for leaving sections
-                        fadeTo(0, 400);
-                    }
-                });
-            }, { root: null, threshold: 0.55 });
-
-            // Observe each main content section
-            document.querySelectorAll('.content-section, .closing-section, .hero-section').forEach(el => io.observe(el));
-
-            // Toggle button behavior
-            toggle.addEventListener('click', () => {
-                userEnabled = !userEnabled;
-                localStorage.setItem('orbit-bg-sound-enabled', userEnabled ? 'true' : 'false');
-                if (userEnabled) {
-                    toggle.textContent = 'Sound: On';
-                    audio.muted = false;
-                    // bring volume up gracefully
-                    fadeTo(targetVolume, 600);
-                } else {
-                    toggle.textContent = 'Enable Sound';
-                    fadeTo(0, 300);
-                    setTimeout(() => { audio.muted = true; }, 400);
-                }
-            });
-
-            // On first user interaction, if previously enabled, try to unmute and play
-            function onFirstInteraction() {
-                if (localStorage.getItem('orbit-bg-sound-enabled') === 'true') {
-                    audio.muted = false;
-                    audio.play().catch(()=>{});
-                    fadeTo(targetVolume, 600);
-                }
-                window.removeEventListener('click', onFirstInteraction);
-                window.removeEventListener('keydown', onFirstInteraction);
-            }
-            window.addEventListener('click', onFirstInteraction, { once: true });
-            window.addEventListener('keydown', onFirstInteraction, { once: true });
-        })();
     </script>
 </body>
 </html>
