@@ -2,16 +2,35 @@
    ORBIT — Supabase Configuration
    ======================================== */
 
-// IMPORTANT: Replace these with your actual Supabase project credentials
-const SUPABASE_URL = 'https://awcxgnlltfrwytwejvva.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3Y3hnbmxsdGZyd3l0d2VqdnZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2MTQ5NTksImV4cCI6MjA4MTE5MDk1OX0.Sx_DaV3iXlEABX3r3pqU0t2_XndHvdDKMvxiXG9Ksho';
+// IMPORTANT: Do NOT hard-code secrets in source. The anon key is intended
+// to be used by client-side code, but storing it in the repo is unnecessary
+// and can be avoided by injecting it at build time or via a meta tag.
 
-// expose values on window for other scripts that check them
-window.SUPABASE_URL = SUPABASE_URL;
-window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
+// Prefer configuring the runtime anon key via a meta tag injected at deploy/build:
+// <meta name="supabase-url" content="https://your-project.supabase.co">
+// <meta name="supabase-anon-key" content="public-anon-key-goes-here">
 
-// Initialize Supabase client (use a distinct name to avoid colliding with the library global)
-const orbitSupabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+const SUPABASE_URL = (document.querySelector('meta[name="supabase-url"]') || {}).content || 'https://awcxgnlltfrwytwejvva.supabase.co';
+const SUPABASE_ANON_KEY = (document.querySelector('meta[name="supabase-anon-key"]') || {}).content || null;
+
+// Do NOT attach the anon key to `window`. Instead initialize the client only
+// when a runtime key is available. This prevents the repo/source from containing
+// the key and reduces accidental leaks.
+let orbitSupabaseClient = null;
+if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+    try {
+        orbitSupabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Expose only the client (no raw key on window)
+        window.orbitSupabase = orbitSupabaseClient;
+    } catch (e) {
+        console.error('Failed to initialize Supabase client:', e);
+    }
+} else {
+    // Warn in dev if client isn't initialized; this is expected until you inject
+    // the anon key at build/deploy time or add the meta tags to your HTML.
+    console.warn('Supabase client not initialized. Add a meta[name="supabase-anon-key"] tag or inject the anon key at build time.');
+    window.orbitSupabase = null;
+}
 
 /* ========================================
    DATABASE SCHEMA SETUP
