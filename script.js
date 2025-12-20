@@ -1044,34 +1044,44 @@ function initEventListeners() {
     if (elements.playPauseBtn) elements.playPauseBtn.addEventListener('click', togglePlayPause);
 
     // Skip button
-    elements.skipBtn.addEventListener('click', skipTrack);
+    if (elements.skipBtn) elements.skipBtn.addEventListener('click', skipTrack);
 
     // Lyrics toggle - open modal instead
-    elements.lyricsToggle.addEventListener('click', openLyricsModal);
-    
+    if (elements.lyricsToggle) elements.lyricsToggle.addEventListener('click', openLyricsModal);
+
     // Lyrics modal close
     if (elements.lyricsModalClose) {
         elements.lyricsModalClose.addEventListener('click', closeLyricsModal);
     }
-    
+
     // Close modal on backdrop click
     if (elements.lyricsModal) {
-        elements.lyricsModal.querySelector('.lyrics-modal-backdrop')?.addEventListener('click', closeLyricsModal);
+        const backdrop = elements.lyricsModal.querySelector('.lyrics-modal-backdrop');
+        if (backdrop) backdrop.addEventListener('click', closeLyricsModal);
     }
 
     // Audio ended - auto skip
-    elements.audioPlayer.addEventListener('ended', () => {
-        skipTrack();
-    });
+    if (elements.audioPlayer) {
+        try {
+            elements.audioPlayer.addEventListener('ended', () => {
+                skipTrack();
+            });
 
-    // Audio error handling
-    elements.audioPlayer.addEventListener('error', () => {
-        console.log('Audio error, skipping to next track...');
-        skipTrack();
-    });
+            // Audio error handling
+            elements.audioPlayer.addEventListener('error', () => {
+                console.log('Audio error, skipping to next track...');
+                skipTrack();
+            });
+        } catch (e) {
+            console.warn('Audio element listeners could not be attached', e);
+        }
+    }
 
     // Click anywhere on jukebox disc to play/pause
-    elements.jukebox.querySelector('.disc-container').addEventListener('click', togglePlayPause);
+    if (elements.jukebox) {
+        const disc = elements.jukebox.querySelector('.disc-container');
+        if (disc) disc.addEventListener('click', togglePlayPause);
+    }
 }
 
 // ========================================
