@@ -87,18 +87,38 @@ const elements = {
 // ========================================
 
 async function checkAuth() {
-    const { data: { session }, error } = await orbitSupabase.auth.getSession();
-    
-    if (!session) {
-        window.location.href = '/admin/index.html';
+    if (!window.orbitSupabase) {
+        elements.songsTableBody.innerHTML = `
+            <tr class="loading-row">
+                <td colspan="6">Admin unavailable: Supabase client not initialized.</td>
+            </tr>
+        `;
+        showToast('Supabase client not initialized. Check server config.', 'error');
         return;
     }
-    
-    currentUser = session.user;
-    elements.adminUser.textContent = currentUser.email;
-    
-    // Load songs after auth check
-    await loadSongs();
+
+    try {
+        const { data: { session }, error } = await orbitSupabase.auth.getSession();
+
+        if (!session) {
+            window.location.href = '/admin/index.html';
+            return;
+        }
+
+        currentUser = session.user;
+        elements.adminUser.textContent = currentUser.email;
+
+        // Load songs after auth check
+        await loadSongs();
+    } catch (e) {
+        console.error('Auth check failed:', e);
+        elements.songsTableBody.innerHTML = `
+            <tr class="loading-row">
+                <td colspan="6">Failed to verify auth. Please refresh.</td>
+            </tr>
+        `;
+        showToast('Failed to verify auth. See console.', 'error');
+    }
 }
 
 async function logout() {
