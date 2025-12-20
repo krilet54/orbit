@@ -77,13 +77,24 @@
 
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../supabase-config.js"></script>
+    <!-- Load runtime Supabase config (injects anon key from Vercel env) -->
+    <script src="/api/supabase-config.js"></script>
     <script>
-        // Check if already logged in
+        // Check if Supabase client initialized before doing auth calls
         (async () => {
-            const { data: { session } } = await orbitSupabase.auth.getSession();
-            if (session) {
-                window.location.href = '/admin/dashboard.html';
+            if (!window.orbitSupabase) {
+                document.getElementById('errorMessage').textContent = 'Admin unavailable: Supabase client not initialized.';
+                document.getElementById('errorMessage').classList.add('visible');
+                return;
+            }
+
+            try {
+                const { data: { session } } = await orbitSupabase.auth.getSession();
+                if (session) {
+                    window.location.href = '/admin/dashboard.html';
+                }
+            } catch (e) {
+                console.error('Auth check failed', e);
             }
         })();
 
