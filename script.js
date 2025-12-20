@@ -170,7 +170,46 @@ async function loadTracksFromSupabase() {
 
         if (data && data.length > 0) {
             console.log(`Loaded ${data.length} songs from Supabase`);
-            return data;
+            // Resolve public storage URLs into signed URLs via server endpoint when needed
+            try {
+                const tracks = data;
+                const supabaseUrl = window.SUPABASE_URL ? window.SUPABASE_URL.replace(/\/$/, '') : null;
+                const publicPrefix = supabaseUrl ? `${supabaseUrl}/storage/v1/object/public/` : null;
+
+                if (publicPrefix) {
+                    await Promise.all(tracks.map(async (t) => {
+                        try {
+                            if (t.audio_url && t.audio_url.startsWith(publicPrefix)) {
+                                const objectPath = t.audio_url.substring(publicPrefix.length);
+                                const resp = await fetch(`/api/signed-url?path=${encodeURIComponent(objectPath)}`);
+                                if (resp.ok) {
+                                    const j = await resp.json();
+                                    t.audio_url = j.url || t.audio_url;
+                                } else {
+                                    console.warn('Signed URL fetch failed for', objectPath, await resp.text());
+                                }
+                            }
+                            if (t.cover_url && t.cover_url.startsWith(publicPrefix)) {
+                                const coverPath = t.cover_url.substring(publicPrefix.length);
+                                const resp2 = await fetch(`/api/signed-url?path=${encodeURIComponent(coverPath)}`);
+                                if (resp2.ok) {
+                                    const j2 = await resp2.json();
+                                    t.cover_url = j2.url || t.cover_url;
+                                } else {
+                                    console.warn('Signed URL fetch failed for cover', coverPath, await resp2.text());
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('Failed to fetch signed url for track', t, e);
+                        }
+                    }));
+                }
+
+                return tracks;
+            } catch (err) {
+                console.warn('Error resolving signed URLs, returning raw data', err);
+                return data;
+            }
         }
 
         console.log('No songs in Supabase, using fallback tracks');
@@ -1075,51 +1114,7 @@ async function init() {
 
     if (state.tracks.length === 0) {
         elements.currentSongTitle.textContent = 'No tracks available';
-            // Resolve private storage URLs into short-lived signed URLs via our server endpoint
-            try {
-                const tracks = data;
-                const supabaseUrl = window.SUPABASE_URL ? window.SUPABASE_URL.replace(/\/$/, '') : null;
-                const publicPrefix = supabaseUrl ? `${supabaseUrl}/storage/v1/object/public/` : null;
-
-                if (publicPrefix) {
-                    await Promise.all(tracks.map(async (t) => {
-                        try {
-                            // audio_url
-                            if (t.audio_url && t.audio_url.startsWith(publicPrefix)) {
-                                const objectPath = t.audio_url.substring(publicPrefix.length);
-                                const resp = await fetch(`/api/signed-url?path=${encodeURIComponent(objectPath)}`);
-                                if (resp.ok) {
-                                    const j = await resp.json();
-                                    t.audio_url = j.url || t.audio_url;
-                                } else {
-                                    console.warn('Signed URL fetch failed for', objectPath, await resp.text());
-                                }
-                            }
-
-                            // cover_url
-                            if (t.cover_url && t.cover_url.startsWith(publicPrefix)) {
-                                const coverPath = t.cover_url.substring(publicPrefix.length);
-                                const resp2 = await fetch(`/api/signed-url?path=${encodeURIComponent(coverPath)}`);
-                                if (resp2.ok) {
-                                    const j2 = await resp2.json();
-                                    t.cover_url = j2.url || t.cover_url;
-                                } else {
-                                    console.warn('Signed URL fetch failed for cover', coverPath, await resp2.text());
-                                }
-                            }
-                        } catch (e) {
-                            console.warn('Failed to fetch signed url for track', t, e);
-                        }
-                    }));
-                }
-
-                return tracks;
-            } catch (err) {
-                console.warn('Error resolving signed URLs, returning raw data', err);
-                return data;
-            }
-            }
-        }
+        return;
     } else {
         loadTrack(getRandomTrackIndex());
     }
