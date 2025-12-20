@@ -1075,42 +1075,49 @@ async function init() {
 
     if (state.tracks.length === 0) {
         elements.currentSongTitle.textContent = 'No tracks available';
-        elements.songTitle.textContent = 'No tracks available';
-        elements.songTheme.textContent = '—';
-        elements.songSummary.textContent = 'Check back soon for new music.';
-        return;
-    }
-    // Set up event listeners early so controls work even if loading fails
-    initEventListeners();
-
-    // If deep-link, prefer hash fragment `#song={index}` then fallback to query param
-    let deepSong = null;
-    try {
-        if (location.hash && location.hash.startsWith('#song=')) {
-            deepSong = location.hash.replace('#song=', '');
-        } else {
-            const params = new URLSearchParams(window.location.search);
-            deepSong = params.get('song');
-        }
-    } catch (e) { deepSong = null; }
-
-    if (deepSong) {
-        const parsedIndex = Number(deepSong);
-        if (!isNaN(parsedIndex) && parsedIndex >= 0 && parsedIndex < state.tracks.length) {
+            // Resolve private storage URLs into short-lived signed URLs via our server endpoint
             try {
-                loadTrack(parsedIndex);
-                // Do not attempt autoplay automatically — leave playback to user interaction
-            } catch (e) {
-                console.warn('Failed to load deep-linked track index:', e);
-                loadTrack(getRandomTrackIndex());
+                const tracks = data;
+                const supabaseUrl = window.SUPABASE_URL ? window.SUPABASE_URL.replace(/\/$/, '') : null;
+                const publicPrefix = supabaseUrl ? `${supabaseUrl}/storage/v1/object/public/` : null;
+
+                if (publicPrefix) {
+                    await Promise.all(tracks.map(async (t) => {
+                        try {
+                            // audio_url
+                            if (t.audio_url && t.audio_url.startsWith(publicPrefix)) {
+                                const objectPath = t.audio_url.substring(publicPrefix.length);
+                                const resp = await fetch(`/api/signed-url?path=${encodeURIComponent(objectPath)}`);
+                                if (resp.ok) {
+                                    const j = await resp.json();
+                                    t.audio_url = j.url || t.audio_url;
+                                } else {
+                                    console.warn('Signed URL fetch failed for', objectPath, await resp.text());
+                                }
+                            }
+
+                            // cover_url
+                            if (t.cover_url && t.cover_url.startsWith(publicPrefix)) {
+                                const coverPath = t.cover_url.substring(publicPrefix.length);
+                                const resp2 = await fetch(`/api/signed-url?path=${encodeURIComponent(coverPath)}`);
+                                if (resp2.ok) {
+                                    const j2 = await resp2.json();
+                                    t.cover_url = j2.url || t.cover_url;
+                                } else {
+                                    console.warn('Signed URL fetch failed for cover', coverPath, await resp2.text());
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('Failed to fetch signed url for track', t, e);
+                        }
+                    }));
+                }
+
+                return tracks;
+            } catch (err) {
+                console.warn('Error resolving signed URLs, returning raw data', err);
+                return data;
             }
-        } else {
-            // Fallback: look for a track by id only if deepSong looks non-numeric
-            const idx = state.tracks.findIndex(t => String(t.id) === String(deepSong));
-            if (idx !== -1) {
-                try { loadTrack(idx); } catch (e) { loadTrack(getRandomTrackIndex()); }
-            } else {
-                loadTrack(getRandomTrackIndex());
             }
         }
     } else {

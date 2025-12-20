@@ -143,14 +143,52 @@ async function loadSongs() {
     `;
     
     try {
+        if (!window.orbitSupabase) {
+            throw new Error('Supabase client not initialized');
+        }
+
         const { data, error } = await orbitSupabase
             .from('songs')
             .select('*')
             .order('created_at', { ascending: false });
-        
+
         if (error) throw error;
-        
+
         songs = data || [];
+
+        // Resolve signed URLs for covers/audio if using private storage
+        try {
+            const supabaseUrl = window.SUPABASE_URL ? window.SUPABASE_URL.replace(/\/$/, '') : null;
+            const publicPrefix = supabaseUrl ? `${supabaseUrl}/storage/v1/object/public/` : null;
+
+            if (publicPrefix && songs.length) {
+                await Promise.all(songs.map(async (s) => {
+                    try {
+                        if (s.cover_url && s.cover_url.startsWith(publicPrefix)) {
+                            const coverPath = s.cover_url.substring(publicPrefix.length);
+                            const r = await fetch(`/api/signed-url?path=${encodeURIComponent(coverPath)}`);
+                            if (r.ok) {
+                                const j = await r.json();
+                                s.cover_url = j.url || s.cover_url;
+                            }
+                        }
+                        if (s.audio_url && s.audio_url.startsWith(publicPrefix)) {
+                            const audioPath = s.audio_url.substring(publicPrefix.length);
+                            const r2 = await fetch(`/api/signed-url?path=${encodeURIComponent(audioPath)}`);
+                            if (r2.ok) {
+                                const j2 = await r2.json();
+                                s.audio_url = j2.url || s.audio_url;
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Signed URL resolve failed for song', s.id, e);
+                    }
+                }));
+            }
+        } catch (e) {
+            console.warn('Failed to resolve signed URLs for songs', e);
+        }
+
         renderSongs();
         updateStats();
     } catch (error) {
