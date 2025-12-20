@@ -1138,6 +1138,9 @@ async function init() {
     // Initialize mobile gestures
     initMobileGestures();
     
+        // Attach UI event listeners (play/pause, skip, share, lyrics modal, disc tap)
+        initEventListeners();
+    
     // Initialize page transitions
     initPageTransitions();
 
