@@ -1,6 +1,124 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Commercial Access — ORBIT</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%230a0a0a' stroke='%23d4af37' stroke-width='2'/%3E%3Ccircle cx='50' cy='50' r='30' fill='none' stroke='%23d4af37' stroke-width='1' opacity='0.5'/%3E%3Ccircle cx='50' cy='50' r='15' fill='%23d4af37'/%3E%3Ccircle cx='50' cy='50' r='5' fill='%230a0a0a'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Minimal overrides to align with terms page look */
+        .terms-hero { padding: 120px 24px 60px; text-align: center; }
+        .lic-sub { color: #999; margin-top: 8px; }
+
+        .pricing-grid { display:grid; grid-template-columns: repeat(3,1fr); gap:20px; max-width:980px; margin:36px auto; }
+        @media (max-width: 920px) { .pricing-grid { grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); } }
+
+        .pricing-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); padding:28px; border-radius:10px; }
+        .pricing-card .pricing-title { font-family: var(--font-serif); font-size:0.85rem; color:var(--color-gold); letter-spacing:0.18em; text-transform:uppercase; margin-bottom:8px; }
+        .pricing-card .pricing-price { font-size:1.8rem; color:var(--color-ivory); margin:6px 0 12px; }
+        .pricing-card .pricing-benefit { color:#bdbdbd; font-size:0.95rem; margin:8px 0; }
+        .pricing-card .pricing-cta { display:inline-block; margin-top:14px; padding:10px 16px; color:var(--color-ivory); border:1px solid rgba(255,255,255,0.06); border-radius:6px; text-decoration:none; }
+
+        .what-you-get { max-width:720px; margin:28px auto 80px; color:#bbb; }
+        .what-you-get li { margin-bottom:8px; }
+
+        /* Keep footer spacing consistent */
+        footer.footer { margin-top: 24px; }
+    </style>
+</head>
+<body>
+    <!-- Navigation (minimal, matching Terms page header) -->
+    <nav class="terms-nav">
+        <a href="/" class="terms-nav-logo">ORBIT</a>
+        <div class="terms-nav-back">
+            <a href="terms.html" class="nav-link">Terms</a>
+        </div>
+    </nav>
+
+    <div class="content-wrapper">
+        <main>
+            <header class="terms-hero">
+                <div class="terms-label">COMMERCIAL</div>
+                <h1 class="terms-title">COMMERCIAL ACCESS</h1>
+                <p class="terms-meta lic-sub">The Protocol</p>
+                <p class="terms-intro visible" style="margin-top:18px;">Orbit is free for the listener, but valuable for the creator. If you wish to incorporate the Orbit soundscape into your films, games, or commercial projects, you must acquire a transmission license. This supports the experiment.</p>
+            </header>
+
+            <section class="terms-content">
+                <div class="terms-section">
+                    <div class="pricing-grid">
+                        <div class="pricing-card">
+                            <div class="pricing-title">THE CREATOR</div>
+                            <div class="pricing-price">1900 / track</div>
+                            <div class="pricing-benefit"><strong>Best For:</strong> YouTubers, Podcasters, Social Media.</div>
+                            <div class="pricing-benefit"><strong>Usage:</strong> Web &amp; Social Media only.</div>
+                            <div class="pricing-benefit"><strong>Rights:</strong> Monetized YouTube allowed.</div>
+                            <a class="pricing-cta" href="#">Acquire License</a>
+                        </div>
+
+                        <div class="pricing-card">
+                            <div class="pricing-title">THE PROFESSIONAL</div>
+                            <div class="pricing-price">4900 / track</div>
+                            <div class="pricing-benefit"><strong>Best For:</strong> Indie Films, Client Ads, Events.</div>
+                            <div class="pricing-benefit"><strong>Usage:</strong> Web + Digital Ads + Events.</div>
+                            <div class="pricing-benefit"><strong>Rights:</strong> Paid Advertising allowed.</div>
+                            <a class="pricing-cta" href="#">Acquire License</a>
+                        </div>
+
+                        <div class="pricing-card">
+                            <div class="pricing-title">THE ENTERPRISE</div>
+                            <div class="pricing-price">Custom</div>
+                            <div class="pricing-benefit"><strong>Best For:</strong> Global Brands, Netflix, TV Broadcast.</div>
+                            <div class="pricing-benefit"><strong>Usage:</strong> All Media (Worldwide).</div>
+                            <div class="pricing-benefit"><strong>Rights:</strong> Unlimited / Exclusive options.</div>
+                            <a class="pricing-cta" href="mailto:orbitaudioo@gmail.com">Initiate Contact</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="terms-section">
+                    <h3 class="section-title">What You Get</h3>
+                    <p class="section-text">Each transmission license includes the following:</p>
+                    <ul class="what-you-get">
+                        <li>Includes 24-bit WAV Master File.</li>
+                        <li>PDF License Certificate (Anti-Copyright Strike).</li>
+                        <li>Perpetual, Royalty-Free Usage.</li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-accent-line"></div>
+        <div class="footer-content">
+            <div class="footer-brand">
+                <span class="footer-logo-text">ORBIT</span>
+                <span class="footer-tagline">hear the unheard</span>
+            </div>
+            <nav class="footer-nav">
+                <a href="why-orbit.html" class="footer-link">Why ORBIT</a>
+                <span class="footer-dot">·</span>
+                <a href="terms.html" class="footer-link">Terms</a>
+                <span class="footer-dot">·</span>
+                <a href="licensing.html" class="footer-link">Commercial Access</a>
+                <span class="footer-dot">·</span>
+                <a href="admin/" class="footer-link footer-link-admin">Admin</a>
+            </nav>
+        </div>
+        <div class="footer-bottom">
+            <p class="copyright">© 2025 ORBIT. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Commercial Access — ORBIT</title>
